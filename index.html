@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sablon Pro</title>
+<title>WELLMATES</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -155,7 +155,7 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
   <div class="header-left">
     <div class="logo">🖨️</div>
     <div class="header-text">
-      <h1 id="headerNamaToko">Sablon Pro</h1>
+      <h1 id="headerNamaToko">WELLMATES</h1>
       <p id="headerNoHP">Kalkulator HPP Sablon</p>
     </div>
   </div>
@@ -329,7 +329,7 @@ function autoSaveToko(){
   updateHeaderToko();
 }
 function updateHeaderToko(){
-  document.getElementById('headerNamaToko').textContent = tokoData.nama || 'Sablon Pro';
+  document.getElementById('headerNamaToko').textContent = tokoData.nama || 'WELLMATES';
   document.getElementById('headerNoHP').textContent     = tokoData.hp   || 'Kalkulator HPP Sablon';
 }
 function bukaModalToko(){
@@ -595,7 +595,7 @@ function renderHasil(r){
   document.getElementById('hasilContainer').innerHTML=`
     <!-- Print header -->
     <div class="card" style="text-align:center">
-      <div style="font-size:17px;font-weight:800">${r.namaToko||'Sablon Pro'}</div>
+      <div style="font-size:17px;font-weight:800">${r.namaToko||'WELLMATES'}</div>
       ${r.nomorHP?`<div style="font-size:12px;color:var(--muted)">${r.nomorHP}</div>`:''}
     </div>
 
@@ -651,7 +651,7 @@ function renderHasil(r){
     </div>
 
     <div class="btn-row no-print">
-      <button class="btn-sec" onclick="window.print()">🖨️ Print Struk</button>
+      <button class="btn-sec" onclick="printStruk()">🖨️ Print Struk</button>
       <button class="btn-sec" onclick="salinWA()">📋 Salin WA</button>
     </div>
   `;
@@ -662,7 +662,7 @@ function salinWA(){
   if(currentIdx===null){showToast('⚠️ Belum ada hasil','#ff4757');return;}
   const r=histori[currentIdx];
   const st=getStatus(r); const sisa=getSisa(r); const tb=getTotalBayar(r);
-  let t=`*${r.namaToko||'Sablon Pro'}*\n`;
+  let t=`*${r.namaToko||'WELLMATES'}*\n`;
   if(r.nomorHP) t+=`${r.nomorHP}\n`;
   t+=`━━━━━━━━━━━━━━━━━━━━\n`;
   t+=`No     : ${r.noOrder}\nCustomer: ${r.customer||'-'}\nProject : ${r.project||'-'}\nTgl     : ${r.waktu}\n`;
@@ -713,6 +713,18 @@ function renderAnalitik(){
           <span class="val">${rp(h.totalTagihan)}</span>
         </div>`).join('')}
     </div>`;
+}
+
+// ===== PRINT =====
+function printStruk(){
+  if(currentIdx===null){showToast('⚠️ Belum ada hasil','#ff4757');return;}
+  const r = histori[currentIdx];
+  const nama = (r.customer||'customer').replace(/\s+/g,'_');
+  const noOrd = (r.noOrder||'').replace('#','');
+  const oriTitle = document.title;
+  document.title = `Invoice_${nama}_${noOrd}`;
+  window.print();
+  setTimeout(()=>{ document.title = oriTitle; }, 1000);
 }
 
 // ===== BACKUP & RESTORE =====
