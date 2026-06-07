@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator Sablon Offline</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:900px;margin:auto;padding:20px;background:#f4f4f4}
+.card{background:#fff;padding:16px;border-radius:10px;margin-bottom:15px}
+h1,h2{margin-top:0}
+label{display:block;margin-top:10px}
+input[type=number],input[type=text]{width:100%;padding:8px;box-sizing:border-box}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+button{padding:12px 18px;font-size:16px;cursor:pointer}
+.result{background:#eef;padding:12px;border-radius:8px;white-space:pre-line}
+</style>
+</head>
+<body>
+<h1>Kalkulator Sablon Offline</h1>
+
+<div class="card">
+<h2>Data Dasar</h2>
+<label>Nama Customer <input type="text" id="customer"></label>
+<label>Nama Project <input type="text" id="project"></label>
+<label>Harga Kaos Dasar / pcs <input type="number" id="hargaKaos" value="45000"></label>
+<label>Biaya Sablon / pcs <input type="number" id="biayaSablon" value="15000"></label>
+<label>Margin (%) <input type="number" id="margin" value="30"></label>
+</div>
+
+<div class="card">
+<h2>Model</h2>
+<label><input type="radio" name="model" value="0" checked> Lengan Pendek</label>
+<label><input type="radio" name="model" value="10000"> Lengan Panjang (+10.000)</label>
+</div>
+
+<div class="card">
+<h2>Jumlah per Ukuran</h2>
+<div class="grid">
+<label>S <input type="number" id="S" value="0"></label>
+<label>M <input type="number" id="M" value="0"></label>
+<label>L <input type="number" id="L" value="0"></label>
+<label>XL <input type="number" id="XL" value="0"></label>
+<label>XXL <input type="number" id="XXL" value="0"></label>
+<label>3XL <input type="number" id="3XL" value="0"></label>
+<label>4XL <input type="number" id="4XL" value="0"></label>
+<label>5XL <input type="number" id="5XL" value="0"></label>
+</div>
+</div>
+
+<div class="card">
+<h2>Biaya Tambahan</h2>
+<label>Label <input type="number" id="label" value="0"></label>
+<label>Hangtag <input type="number" id="hangtag" value="0"></label>
+<label>Packing <input type="number" id="packing" value="0"></label>
+<label>Ongkir <input type="number" id="ongkir" value="0"></label>
+<label>Lain-lain <input type="number" id="lain" value="0"></label>
+</div>
+
+<div class="card">
+<button onclick="hitung()">HITUNG</button>
+</div>
+
+<div class="card">
+<h2>Hasil</h2>
+<div id="hasil" class="result">Belum dihitung.</div>
+</div>
+
+<script>
+function rp(n){
+ return "Rp" + n.toLocaleString('id-ID');
+}
+
+function hitung(){
+ const hargaKaos=+document.getElementById('hargaKaos').value||0;
+ const biayaSablon=+document.getElementById('biayaSablon').value||0;
+ const margin=+document.getElementById('margin').value||0;
+
+ const qty={
+  S:+S.value||0,M:+M.value||0,L:+L.value||0,XL:+XL.value||0,
+  XXL:+document.getElementById('XXL').value||0,
+  "3XL":+document.getElementById('3XL').value||0,
+  "4XL":+document.getElementById('4XL').value||0,
+  "5XL":+document.getElementById('5XL').value||0
+ };
+
+ const totalQty=Object.values(qty).reduce((a,b)=>a+b,0);
+
+ const tambahanSize =
+  qty["XXL"]*10000 +
+  qty["3XL"]*15000 +
+  qty["4XL"]*20000 +
+  qty["5XL"]*20000;
+
+ const tambahanLengan = totalQty * (+document.querySelector('input[name="model"]:checked').value);
+
+ const modalKaos = totalQty * hargaKaos;
+ const modalSablon = totalQty * biayaSablon;
+
+ const biayaLain =
+  (+label.value||0)+(+hangtag.value||0)+(+packing.value||0)+(+ongkir.value||0)+(+lain.value||0);
+
+ const totalModal = modalKaos + modalSablon + tambahanSize + tambahanLengan + biayaLain;
+ const profit = totalModal * (margin/100);
+ const totalTagihan = totalModal + profit;
+ const hargaPerPcs = totalQty ? totalTagihan/totalQty : 0;
+
+ hasil.textContent =
+`Total Qty      : ${totalQty} pcs
+
+Modal Kaos     : ${rp(modalKaos)}
+Modal Sablon   : ${rp(modalSablon)}
+Tambahan Size  : ${rp(tambahanSize)}
+Tambahan Lengan: ${rp(tambahanLengan)}
+Biaya Lain     : ${rp(biayaLain)}
+
+Total Modal    : ${rp(totalModal)}
+Profit ${margin}%     : ${rp(Math.round(profit))}
+
+Total Tagihan  : ${rp(Math.round(totalTagihan))}
+Harga / pcs    : ${rp(Math.round(hargaPerPcs))}`;
+}
+</script>
+</body>
+</html>
