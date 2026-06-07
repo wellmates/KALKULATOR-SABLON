@@ -128,7 +128,7 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
 @media print {
   @page{size:80mm auto;margin:2mm 3mm;}
   body{background:white!important;color:black!important;padding:0;font-family:'DM Mono',monospace;font-size:11px;width:80mm;margin:0;}
-  .no-print,.tabs,.btn-main,.btn-row,.header,#tab-hitung,#tab-histori,#tab-analitik,#tab-toko,.print-hide,.modal-overlay,.pay-item button{display:none!important;}
+  .no-print,.tabs,.btn-main,.btn-row,.header,#tab-hitung,#tab-histori,#tab-analitik,#tab-toko,.print-hide,.modal-overlay,.pay-item button,#toast{display:none!important;}
   #tab-hasil{display:block!important;}
   #hasilContainer{padding:0!important;}
   .card{background:white!important;border:none!important;padding:0!important;margin-bottom:4px!important;box-shadow:none!important;}
@@ -545,12 +545,17 @@ function hitung(){
   const biayaTambahan=biayaLabel+hangtag+packing+ongkir+lain;
   totalTagihan+=biayaTambahan; totalHPP+=biayaTambahan;
 
+  const hppKaos   = Math.round(totalHPP * 0.50);
+  const hppSablon = Math.round(totalHPP * 0.40);
+  const hppAfdruk = Math.round(totalHPP * 0.10);
+
   const order={
     noOrder:noOrder(), namaToko:tokoData.nama, nomorHP:tokoData.hp,
     customer, project, deadline, catatan,
     hargaBase, hppBase, biayaLabel, hangtag, packing, ongkir, lain,
     qty, totalQty, sizeDetail, biayaTambahan,
-    totalTagihan, totalHPP, payments:[], waktu:nowStr()
+    totalTagihan, totalHPP, hppKaos, hppSablon, hppAfdruk,
+    payments:[], waktu:nowStr()
   };
 
   histori.push(order);
@@ -637,6 +642,21 @@ function renderHasil(r){
     <div class="card print-hide no-print">
       <div class="card-title gray">HPP & Keuntungan — Tidak Tampil di Struk</div>
       <div class="result-row"><span class="lbl">Total HPP Produksi</span><span class="val">${rp(r.totalHPP)}</span></div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;margin:8px 0;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Rincian HPP</div>
+        <div class="result-row" style="border-color:var(--border)">
+          <span class="lbl">👕 Harga Kaos <span style="color:var(--accent)">(50%)</span></span>
+          <span class="val">${rp(r.hppKaos||Math.round(r.totalHPP*.5))}</span>
+        </div>
+        <div class="result-row" style="border-color:var(--border)">
+          <span class="lbl">🎨 Harga Sablon <span style="color:var(--accent)">(40%)</span></span>
+          <span class="val">${rp(r.hppSablon||Math.round(r.totalHPP*.4))}</span>
+        </div>
+        <div class="result-row" style="border-color:var(--border)">
+          <span class="lbl">🖼️ Harga Afdruk <span style="color:var(--accent)">(10%)</span></span>
+          <span class="val">${rp(r.hppAfdruk||Math.round(r.totalHPP*.1))}</span>
+        </div>
+      </div>
       <div class="result-row"><span class="lbl">Total Tagihan</span><span class="val">${rp(r.totalTagihan)}</span></div>
       <div class="result-row"><span class="lbl" style="color:var(--success);font-weight:700">Keuntungan</span><span class="val" style="color:var(--success)">${rp(r.totalTagihan-r.totalHPP)}</span></div>
     </div>
@@ -682,8 +702,12 @@ function salinWA(){
 function renderAnalitik(){
   if(!histori.length){document.getElementById('analitikContainer').innerHTML='<div class="empty-state"><div class="icon">📈</div><p>Belum ada data.</p></div>';return;}
   let omzet=0,hpp=0,qty=0,lunas=0,dp=0,belum=0,piutang=0;
+  let totalKaos=0,totalSablon=0,totalAfdruk=0;
   histori.forEach(h=>{
     omzet+=h.totalTagihan; hpp+=h.totalHPP||0; qty+=h.totalQty;
+    totalKaos  +=(h.hppKaos  ||Math.round((h.totalHPP||0)*.5));
+    totalSablon+=(h.hppSablon||Math.round((h.totalHPP||0)*.4));
+    totalAfdruk+=(h.hppAfdruk||Math.round((h.totalHPP||0)*.1));
     const st=getStatus(h);
     if(st==='lunas') lunas++; else if(st==='dp') dp++; else belum++;
     piutang+=getSisa(h);
@@ -696,6 +720,13 @@ function renderAnalitik(){
         <div class="stat-box"><div class="sl">Total Omzet</div><div class="sv orange">${rp(omzet)}</div></div>
         <div class="stat-box"><div class="sl">Total HPP</div><div class="sv red">${rp(hpp)}</div></div>
         <div class="stat-box" style="grid-column:span 2"><div class="sl">Keuntungan Bersih</div><div class="sv green" style="font-size:19px">${rp(omzet-hpp)}</div></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">Rincian Pengeluaran HPP</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="sl">👕 Harga Kaos (50%)</div><div class="sv orange">${rp(totalKaos)}</div></div>
+        <div class="stat-box"><div class="sl">🎨 Harga Sablon (40%)</div><div class="sv orange">${rp(totalSablon)}</div></div>
+        <div class="stat-box" style="grid-column:span 2"><div class="sl">🖼️ Harga Afdruk (10%)</div><div class="sv orange">${rp(totalAfdruk)}</div></div>
       </div>
     </div>
     <div class="card"><div class="card-title">Status Pembayaran</div>
@@ -719,12 +750,12 @@ function renderAnalitik(){
 function printStruk(){
   if(currentIdx===null){showToast('⚠️ Belum ada hasil','#ff4757');return;}
   const r = histori[currentIdx];
-  const nama = (r.customer||'customer').replace(/\s+/g,'_');
+  const nama = (r.customer||'customer').trim().replace(/\s+/g,'_');
   const noOrd = (r.noOrder||'').replace('#','');
   const oriTitle = document.title;
   document.title = `Invoice_${nama}_${noOrd}`;
   window.print();
-  setTimeout(()=>{ document.title = oriTitle; }, 1000);
+  document.title = oriTitle;
 }
 
 // ===== BACKUP & RESTORE =====
