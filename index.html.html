@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sablon Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#222;--border:#2e2e2e;
+  --accent:#ff6b2b;--text:#f0f0f0;--muted:#888;--success:#2dcc70;
+  --danger:#ff4757;--warning:#ffaa00;--radius:14px;
+}
+body.light {
+  --bg:#f0f0f0;--surface:#fff;--surface2:#f5f5f5;--border:#ddd;
+  --text:#111;--muted:#666;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px;transition:background .3s,color .3s;}
+
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.header-left{display:flex;align-items:center;gap:12px;}
+.logo{width:42px;height:42px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.header-text h1{font-size:20px;font-weight:800;}
+.header-text p{font-size:11px;color:var(--muted);margin-top:1px;}
+.header-right{display:flex;gap:8px;}
+.icon-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:17px;color:var(--text);}
+
+.tabs{display:flex;gap:5px;margin-bottom:18px;background:var(--surface);padding:5px;border-radius:12px;}
+.tab{flex:1;padding:8px 4px;border:none;border-radius:8px;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.tab.active{background:var(--accent);color:white;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+.card-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;}
+.card-title.gray{color:var(--muted);}
+
+label{display:block;font-size:11px;color:var(--muted);margin-top:10px;margin-bottom:3px;font-weight:600;}
+label:first-of-type{margin-top:0;}
+input[type=number],input[type=text],input[type=date],textarea{
+  width:100%;padding:9px 11px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;outline:none;transition:border-color .2s;
+}
+input:focus,textarea:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:65px;font-size:13px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* HPP preview */
+.hpp-preview{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:10px;}
+.hpp-preview-title{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.hpp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.hpp-cell{text-align:center;}
+.hpp-cell .hc-size{font-size:10px;color:var(--muted);font-weight:700;margin-bottom:2px;}
+.hpp-cell .hc-p{font-size:11px;font-family:'DM Mono',monospace;color:var(--text);}
+.hpp-cell .hc-j{font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);}
+
+/* Size table */
+.size-table{width:100%;border-collapse:collapse;}
+.size-table th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:6px 4px;text-align:center;border-bottom:1px solid var(--border);}
+.size-table th:first-child{text-align:left;}
+.size-table td{padding:5px 4px;text-align:center;}
+.size-table td:first-child{font-size:12px;font-weight:700;text-align:left;}
+.size-table td input{text-align:center;padding:7px 4px;font-size:14px;}
+.size-extra{font-size:9px;color:var(--accent);font-weight:700;display:block;}
+
+.btn-main{width:100%;padding:15px;background:var(--accent);color:white;border:none;border-radius:var(--radius);font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:12px;transition:opacity .2s,transform .1s;}
+.btn-main:active{transform:scale(.98);}
+.btn-row{display:flex;gap:8px;margin-top:12px;}
+.btn-sec{flex:1;padding:11px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-sec:hover{border-color:var(--accent);color:var(--accent);}
+
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.result-row:last-child{border-bottom:none;}
+.result-row .lbl{color:var(--muted);font-size:12px;}
+.result-row .val{font-family:'DM Mono',monospace;font-weight:500;}
+
+.big-box{border-radius:10px;padding:13px 15px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
+.big-box.orange{background:rgba(255,107,43,.1);border:1px solid var(--accent);}
+.big-box.green{background:rgba(45,204,112,.1);border:1px solid var(--success);}
+.big-box.red{background:rgba(255,71,87,.1);border:1px solid var(--danger);}
+.big-box .lbl{font-size:11px;color:var(--muted);font-weight:700;}
+.big-box .val{font-family:'DM Mono',monospace;font-size:17px;font-weight:700;}
+.big-box.orange .val{color:var(--accent);}
+.big-box.green .val{color:var(--success);}
+.big-box.red .val{color:var(--danger);}
+
+.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.s-lunas{background:rgba(45,204,112,.15);color:var(--success);border:1px solid var(--success);}
+.s-dp{background:rgba(255,170,0,.15);color:var(--warning);border:1px solid var(--warning);}
+.s-belum{background:rgba(255,71,87,.15);color:var(--danger);border:1px solid var(--danger);}
+
+.pay-input{display:flex;gap:8px;align-items:flex-end;margin-top:10px;}
+.pay-input input{flex:1;}
+.pay-input button{padding:9px 14px;background:var(--accent);border:none;border-radius:8px;color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
+.pay-item{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;font-size:13px;}
+.pay-item .pi-info{color:var(--muted);font-size:11px;margin-top:2px;}
+.pay-item button{background:none;border:none;color:var(--danger);cursor:pointer;font-size:15px;}
+
+.history-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;cursor:pointer;transition:border-color .2s;}
+.history-item:hover{border-color:var(--accent);}
+.h-name{font-weight:700;font-size:14px;}
+.h-date{font-size:11px;color:var(--muted);}
+.h-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.h-total{font-family:'DM Mono',monospace;font-size:15px;color:var(--accent);font-weight:600;margin-top:5px;}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.stat-box .sl{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.stat-box .sv{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;}
+.sv.green{color:var(--success);}.sv.orange{color:var(--accent);}.sv.red{color:var(--danger);}
+
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty-state .icon{font-size:36px;margin-bottom:10px;}
+.badge{display:inline-block;background:var(--accent);color:white;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px;vertical-align:middle;}
+
+/* Modal / overlay */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--surface);border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:80vh;overflow-y:auto;}
+.modal-title{font-size:16px;font-weight:800;margin-bottom:16px;}
+.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#2dcc70;color:white;padding:11px 20px;border-radius:100px;font-size:13px;font-weight:700;transition:transform .3s;z-index:999;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ===== PRINT ===== */
+@media print {
+  @page{size:80mm auto;margin:4mm;}
+  body{background:white!important;color:black!important;padding:0;font-family:'DM Mono',monospace;font-size:12px;width:80mm;}
+  .no-print,.tabs,.btn-main,.btn-row,.header,#tab-hitung,#tab-histori,#tab-analitik,#tab-toko,.print-hide,.modal-overlay{display:none!important;}
+  #tab-hasil{display:block!important;}
+  .card{background:white!important;border:none!important;padding:0!important;margin-bottom:6px!important;}
+  *{color:black!important;background:white!important;border-color:#999!important;}
+  .big-box{border:1px solid #999!important;border-radius:0!important;padding:6px 8px!important;margin-top:3px!important;}
+  .big-box .val{font-size:14px!important;}
+  .result-row{padding:3px 0!important;font-size:11px!important;}
+  .status-badge{border:1px solid #000!important;color:black!important;background:white!important;}
+  .ttd-line{display:flex;justify-content:space-between;margin-top:28px;}
+  .ttd-box{text-align:center;width:45%;}
+  .ttd-box .line{border-top:1px solid #000;margin-top:22px;padding-top:3px;font-size:10px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">🖨️</div>
+    <div class="header-text">
+      <h1 id="headerNamaToko">Sablon Pro</h1>
+      <p id="headerNoHP">Kalkulator HPP Sablon</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="bukaModalToko()" title="Pengaturan Toko">⚙️</button>
+    <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('hitung',this)">🧮 Hitung</button>
+  <button class="tab" onclick="switchTab('hasil',this)">📊 Hasil</button>
+  <button class="tab" onclick="switchTab('histori',this)">📋 Histori <span class="badge" id="badgeCount">0</span></button>
+  <button class="tab" onclick="switchTab('analitik',this)">📈 Analitik</button>
+</div>
+
+<!-- ===== TAB HITUNG ===== -->
+<div class="tab-content active" id="tab-hitung">
+
+  <div class="card">
+    <div class="card-title">Info Order</div>
+    <label>Nama Customer</label>
+    <input type="text" id="customer" placeholder="Nama customer">
+    <label>Nama Project</label>
+    <input type="text" id="project" placeholder="cth: Kaos Event 17 Agustus">
+    <div class="two-col">
+      <div><label>Deadline Selesai</label><input type="date" id="deadline"></div>
+      <div></div>
+    </div>
+    <label>Catatan Order</label>
+    <textarea id="catatan" placeholder="cth: Sablon dada kiri, tinta hitam..."></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Harga Jual (S–XL)</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Isi harga jual untuk S–XL. Ukuran besar & lengan panjang otomatis terhitung.</p>
+    <label>Harga Jual S–XL / pcs (Rp)</label>
+    <input type="number" id="hargaBase" value="60000" min="0" oninput="updatePreviewJual()">
+    <div class="hpp-preview" id="hppPreview">
+      <div class="hpp-preview-title">Preview Harga Jual Otomatis</div>
+      <div class="hpp-grid" id="hppGrid"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">HPP / Modal (Tidak Tampil di Struk)</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Isi harga modal S–XL. Ukuran besar & lengan panjang otomatis terhitung.</p>
+    <label>Modal S–XL / pcs (Rp)</label>
+    <input type="number" id="hpp" value="45000" min="0" oninput="updatePreviewHPP()">
+    <div class="hpp-preview" id="hppPreviewModal" style="margin-top:10px">
+      <div class="hpp-preview-title">Preview HPP Otomatis</div>
+      <div class="hpp-grid" id="hppGridModal"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Jumlah per Ukuran</div>
+    <table class="size-table">
+      <thead>
+        <tr>
+          <th>Ukuran</th>
+          <th>Pendek</th>
+          <th>Panjang<br><span style="font-size:9px;color:var(--accent)">+10rb/pcs</span></th>
+        </tr>
+      </thead>
+      <tbody id="sizeRows"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Biaya Tambahan</div>
+    <div class="two-col">
+      <div><label>Label (Rp)</label><input type="number" id="biayaLabel" value="0" min="0"></div>
+      <div><label>Hangtag (Rp)</label><input type="number" id="hangtag" value="0" min="0"></div>
+      <div><label>Packing (Rp)</label><input type="number" id="packing" value="0" min="0"></div>
+      <div><label>Ongkir (Rp)</label><input type="number" id="ongkir" value="0" min="0"></div>
+    </div>
+    <label>Lain-lain (Rp)</label>
+    <input type="number" id="lain" value="0" min="0">
+  </div>
+
+  <button class="btn-main" onclick="hitung()">🧮 HITUNG SEKARANG</button>
+</div>
+
+<!-- ===== TAB HASIL ===== -->
+<div class="tab-content" id="tab-hasil">
+  <div id="hasilContainer">
+    <div class="empty-state"><div class="icon">📊</div><p>Belum ada hasil.<br>Isi form dan klik HITUNG!</p></div>
+  </div>
+</div>
+
+<!-- ===== TAB HISTORI ===== -->
+<div class="tab-content" id="tab-histori">
+  <div id="historiContainer"></div>
+</div>
+
+<!-- ===== TAB ANALITIK ===== -->
+<div class="tab-content" id="tab-analitik">
+  <div id="analitikContainer"><div class="empty-state"><div class="icon">📈</div><p>Belum ada data.</p></div></div>
+</div>
+
+<!-- ===== MODAL TOKO ===== -->
+<div class="modal-overlay" id="modalToko">
+  <div class="modal-box">
+    <button class="modal-close" onclick="tutupModalToko()">✕</button>
+    <div class="modal-title">⚙️ Pengaturan Toko</div>
+    <label>Nama Toko</label>
+    <input type="text" id="inputNamaToko" placeholder="cth: Sablon Jaya" oninput="autoSaveToko()">
+    <label>Nomor HP / WA</label>
+    <input type="text" id="inputNomorHP" placeholder="cth: 0812-3456-7890" oninput="autoSaveToko()">
+    <div style="margin-top:16px">
+      <button class="btn-main" onclick="simpanToko()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== KONSTANTA =====
+const SIZES = ['S','M','L','XL','XXL','3XL','4XL','5XL'];
+const SIZE_EXTRA = {S:0,M:0,L:0,XL:0,XXL:10000,'3XL':15000,'4XL':20000,'5XL':20000};
+const LENGAN_EXTRA = 10000;
+
+// ===== TOKO (permanen) =====
+let tokoData = JSON.parse(localStorage.getItem('sablonToko') || '{"nama":"","hp":""}');
+
+function simpanToko(){
+  tokoData.nama = document.getElementById('inputNamaToko').value.trim();
+  tokoData.hp   = document.getElementById('inputNomorHP').value.trim();
+  localStorage.setItem('sablonToko', JSON.stringify(tokoData));
+  updateHeaderToko();
+  tutupModalToko();
+  showToast('✅ Info toko disimpan!');
+}
+function autoSaveToko(){
+  tokoData.nama = document.getElementById('inputNamaToko').value.trim();
+  tokoData.hp   = document.getElementById('inputNomorHP').value.trim();
+  localStorage.setItem('sablonToko', JSON.stringify(tokoData));
+  updateHeaderToko();
+}
+function updateHeaderToko(){
+  document.getElementById('headerNamaToko').textContent = tokoData.nama || 'Sablon Pro';
+  document.getElementById('headerNoHP').textContent     = tokoData.hp   || 'Kalkulator HPP Sablon';
+}
+function bukaModalToko(){
+  document.getElementById('inputNamaToko').value = tokoData.nama;
+  document.getElementById('inputNomorHP').value  = tokoData.hp;
+  document.getElementById('modalToko').classList.add('show');
+}
+function tutupModalToko(){
+  document.getElementById('modalToko').classList.remove('show');
+}
+updateHeaderToko();
+
+// ===== THEME =====
+let isDark = true;
+function toggleTheme(){
+  isDark=!isDark;
+  document.body.classList.toggle('light',!isDark);
+  document.getElementById('themeBtn').textContent=isDark?'🌙':'☀️';
+}
+
+// ===== TABS =====
+function switchTab(name,el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='analitik') renderAnalitik();
+}
+
+// ===== TOAST =====
+function showToast(msg,color){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.background=color||'#2dcc70';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ===== UTILS =====
+function rp(n){return 'Rp'+Math.round(n).toLocaleString('id-ID');}
+function nowStr(){
+  const d=new Date();
+  return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})+' '+
+         d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+}
+function formatDate(str){
+  if(!str) return '-';
+  const d=new Date(str+'T00:00:00');
+  return d.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+}
+function noOrder(){return '#'+(histori.length+1).toString().padStart(3,'0');}
+
+// ===== HPP PREVIEW =====
+function getHargaSize(base, sizeKey, isLenganPanjang){
+  return base + SIZE_EXTRA[sizeKey] + (isLenganPanjang ? LENGAN_EXTRA : 0);
+}
+function renderPreviewGrid(gridId, base){
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = SIZES.map(s=>{
+    const p = getHargaSize(base,s,false);
+    const j = getHargaSize(base,s,true);
+    return `<div class="hpp-cell">
+      <div class="hc-size">${s}</div>
+      <div class="hc-p">${rp(p)}</div>
+      <div class="hc-j">Pjg: ${rp(j)}</div>
+    </div>`;
+  }).join('');
+}
+function updatePreviewJual(){
+  const base = +document.getElementById('hargaBase').value||0;
+  renderPreviewGrid('hppGrid', base);
+}
+function updatePreviewHPP(){
+  const base = +document.getElementById('hpp').value||0;
+  renderPreviewGrid('hppGridModal', base);
+}
+updatePreviewJual();
+updatePreviewHPP();
+
+// ===== BUILD SIZE TABLE =====
+function buildSizeTable(){
+  document.getElementById('sizeRows').innerHTML = SIZES.map(s=>{
+    const ex = SIZE_EXTRA[s];
+    return `<tr>
+      <td>${s}${ex>0?`<span class="size-extra">+${ex/1000}rb</span>`:''}</td>
+      <td><input type="number" id="P_${s}" value="0" min="0"></td>
+      <td><input type="number" id="J_${s}" value="0" min="0"></td>
+    </tr>`;
+  }).join('');
+}
+buildSizeTable();
+
+// ===== HISTORI =====
+let histori = JSON.parse(localStorage.getItem('sablonHistori4')||'[]');
+let currentIdx = null;
+
+function saveHistori(){localStorage.setItem('sablonHistori4',JSON.stringify(histori));}
+
+function getStatus(o){
+  const bayar=(o.payments||[]).reduce((a,b)=>a+b.jumlah,0);
+  if(bayar<=0) return 'belum';
+  if(bayar>=o.totalTagihan) return 'lunas';
+  return 'dp';
+}
+function getSisa(o){return Math.max(0,o.totalTagihan-(o.payments||[]).reduce((a,b)=>a+b.jumlah,0));}
+function getTotalBayar(o){return (o.payments||[]).reduce((a,b)=>a+b.jumlah,0);}
+
+function statusBadge(s){
+  if(s==='lunas') return '<span class="status-badge s-lunas">✅ LUNAS</span>';
+  if(s==='dp')    return '<span class="status-badge s-dp">⏳ DP</span>';
+  return '<span class="status-badge s-belum">❌ BELUM BAYAR</span>';
+}
+
+function renderHistori(){
+  document.getElementById('badgeCount').textContent=histori.length;
+  const c=document.getElementById('historiContainer');
+  if(!histori.length){c.innerHTML='<div class="empty-state"><div class="icon">📋</div><p>Belum ada histori.</p></div>';return;}
+  c.innerHTML=histori.slice().reverse().map((h,ri)=>{
+    const i=histori.length-1-ri;
+    const st=getStatus(h);
+    return `<div class="history-item" onclick="bukaHistori(${i})">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="h-name">${h.noOrder} — ${h.customer||'Tanpa Nama'}</div>
+          <div class="h-date">${h.project||'-'} • ${h.waktu}</div>
+        </div>
+        <button onclick="event.stopPropagation();hapusHistori(${i})" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;">🗑️</button>
+      </div>
+      <div class="h-sub">${h.totalQty} pcs${h.deadline?' • Deadline: '+formatDate(h.deadline):''}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+        <div class="h-total">${rp(h.totalTagihan)}</div>
+        ${statusBadge(st)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function hapusHistori(i){
+  if(!confirm('Hapus order ini?')) return;
+  if(currentIdx===i) currentIdx=null;
+  histori.splice(i,1);
+  saveHistori(); renderHistori();
+  showToast('🗑️ Dihapus','#ff4757');
+}
+
+function bukaHistori(i){
+  currentIdx=i;
+  renderHasil(histori[i]);
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-hasil').classList.add('active');
+  document.querySelectorAll('.tab')[1].classList.add('active');
+  showToast('📂 Order dimuat');
+}
+
+// ===== BAYAR =====
+function tambahBayar(){
+  if(currentIdx===null){showToast('⚠️ Pilih order dulu!','#ff4757');return;}
+  const inp=document.getElementById('inputBayar');
+  const jumlah=+inp.value||0;
+  if(jumlah<=0){showToast('⚠️ Jumlah harus > 0','#ff4757');return;}
+  const order=histori[currentIdx];
+  if(!order.payments) order.payments=[];
+  order.payments.push({jumlah,waktu:nowStr()});
+  saveHistori(); renderHistori();
+  inp.value='';
+  renderHasil(order);
+  showToast('💰 Pembayaran dicatat!');
+}
+
+function hapusBayar(pi){
+  if(currentIdx===null) return;
+  histori[currentIdx].payments.splice(pi,1);
+  saveHistori(); renderHistori();
+  renderHasil(histori[currentIdx]);
+  showToast('🗑️ Hapus bayar','#ff4757');
+}
+
+// ===== HITUNG =====
+function hitung(){
+  const customer = document.getElementById('customer').value.trim();
+  const project  = document.getElementById('project').value.trim();
+  const deadline = document.getElementById('deadline').value;
+  const catatan  = document.getElementById('catatan').value.trim();
+  const hargaBase= +document.getElementById('hargaBase').value||0;
+  const hppBase  = +document.getElementById('hpp').value||0;
+  const biayaLabel=+document.getElementById('biayaLabel').value||0;
+  const hangtag  = +document.getElementById('hangtag').value||0;
+  const packing  = +document.getElementById('packing').value||0;
+  const ongkir   = +document.getElementById('ongkir').value||0;
+  const lain     = +document.getElementById('lain').value||0;
+
+  const qty={};
+  SIZES.forEach(s=>{qty['P_'+s]=+document.getElementById('P_'+s).value||0;qty['J_'+s]=+document.getElementById('J_'+s).value||0;});
+  const totalQty=Object.values(qty).reduce((a,b)=>a+b,0);
+  if(totalQty===0){showToast('⚠️ Isi jumlah pcs dulu!','#ff4757');return;}
+
+  const sizeDetail=[];
+  let totalTagihan=0, totalHPP=0;
+
+  SIZES.forEach(s=>{
+    const p=qty['P_'+s], j=qty['J_'+s];
+    if(p+j===0) return;
+    const hJualP = getHargaSize(hargaBase,s,false);
+    const hJualJ = getHargaSize(hargaBase,s,true);
+    const hHppP  = getHargaSize(hppBase,s,false);
+    const hHppJ  = getHargaSize(hppBase,s,true);
+    const subJual= p*hJualP + j*hJualJ;
+    const subHpp = p*hHppP  + j*hHppJ;
+    totalTagihan+=subJual; totalHPP+=subHpp;
+    sizeDetail.push({s,p,j,hJualP,hJualJ,hHppP,hHppJ,subJual,subHpp});
+  });
+
+  const biayaTambahan=biayaLabel+hangtag+packing+ongkir+lain;
+  totalTagihan+=biayaTambahan; totalHPP+=biayaTambahan;
+
+  const order={
+    noOrder:noOrder(), namaToko:tokoData.nama, nomorHP:tokoData.hp,
+    customer, project, deadline, catatan,
+    hargaBase, hppBase, biayaLabel, hangtag, packing, ongkir, lain,
+    qty, totalQty, sizeDetail, biayaTambahan,
+    totalTagihan, totalHPP, payments:[], waktu:nowStr()
+  };
+
+  histori.push(order);
+  if(histori.length>100) histori.shift();
+  currentIdx=histori.length-1;
+  saveHistori(); renderHistori(); renderHasil(order);
+  showToast('✅ Order disimpan!');
+
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-hasil').classList.add('active');
+  document.querySelectorAll('.tab')[1].classList.add('active');
+}
+
+// ===== RENDER HASIL =====
+function renderHasil(r){
+  const st=getStatus(r);
+  const totalBayar=getTotalBayar(r);
+  const sisa=getSisa(r);
+
+  const sizeRows=r.sizeDetail.map(d=>{
+    let rows='';
+    if(d.p>0) rows+=`<div class="result-row"><span class="lbl">${d.s} Lengan Pendek × ${d.p} pcs</span><span class="val">${rp(d.hJualP*d.p)}</span></div>`;
+    if(d.j>0) rows+=`<div class="result-row"><span class="lbl">${d.s} Lengan Panjang × ${d.j} pcs</span><span class="val">${rp(d.hJualJ*d.j)}</span></div>`;
+    return rows;
+  }).join('');
+
+  const biayaRows=[
+    r.biayaLabel>0?`<div class="result-row"><span class="lbl">Label</span><span class="val">${rp(r.biayaLabel)}</span></div>`:'',
+    r.hangtag>0?`<div class="result-row"><span class="lbl">Hangtag</span><span class="val">${rp(r.hangtag)}</span></div>`:'',
+    r.packing>0?`<div class="result-row"><span class="lbl">Packing</span><span class="val">${rp(r.packing)}</span></div>`:'',
+    r.ongkir>0?`<div class="result-row"><span class="lbl">Ongkir</span><span class="val">${rp(r.ongkir)}</span></div>`:'',
+    r.lain>0?`<div class="result-row"><span class="lbl">Lain-lain</span><span class="val">${rp(r.lain)}</span></div>`:'',
+  ].join('');
+
+  const payRows=(r.payments||[]).map((p,i)=>`
+    <div class="pay-item">
+      <div><div style="font-family:'DM Mono',monospace;font-weight:600">${rp(p.jumlah)}</div><div class="pi-info">${p.waktu}</div></div>
+      <button onclick="hapusBayar(${i})" class="no-print">🗑️</button>
+    </div>`).join('');
+
+  document.getElementById('hasilContainer').innerHTML=`
+    <!-- Print header -->
+    <div class="card" style="text-align:center">
+      <div style="font-size:17px;font-weight:800">${r.namaToko||'Sablon Pro'}</div>
+      ${r.nomorHP?`<div style="font-size:12px;color:var(--muted)">${r.nomorHP}</div>`:''}
+      <div style="font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:1px">NOTA ORDER SABLON</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Info Order</div>
+      <div class="result-row"><span class="lbl">No. Order</span><span class="val">${r.noOrder}</span></div>
+      <div class="result-row"><span class="lbl">Customer</span><span class="val">${r.customer||'-'}</span></div>
+      <div class="result-row"><span class="lbl">Project</span><span class="val">${r.project||'-'}</span></div>
+      <div class="result-row"><span class="lbl">Tanggal</span><span class="val">${r.waktu}</span></div>
+      <div class="result-row"><span class="lbl">Deadline</span><span class="val">${formatDate(r.deadline)}</span></div>
+      <div class="result-row"><span class="lbl">Total Qty</span><span class="val">${r.totalQty} pcs</span></div>
+      <div class="result-row"><span class="lbl">Status</span><span class="val">${statusBadge(st)}</span></div>
+      ${r.catatan?`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted)">📝 ${r.catatan}</div>`:''}
+    </div>
+
+    <div class="card">
+      <div class="card-title">Rincian Order</div>
+      ${sizeRows}${biayaRows}
+    </div>
+
+    <div class="big-box orange">
+      <div class="lbl">TOTAL TAGIHAN</div>
+      <div class="val">${rp(r.totalTagihan)}</div>
+    </div>
+
+    <!-- Pembayaran -->
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">Pembayaran</div>
+      ${payRows||'<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Belum ada pembayaran</div>'}
+      <div class="result-row"><span class="lbl">Total Dibayar</span><span class="val" style="color:var(--success)">${rp(totalBayar)}</span></div>
+      <div class="result-row"><span class="lbl">Sisa Tagihan</span><span class="val" style="color:${sisa>0?'var(--danger)':'var(--success)'}">${sisa>0?rp(sisa):'✅ Lunas'}</span></div>
+      <div class="pay-input no-print">
+        <input type="number" id="inputBayar" placeholder="Jumlah bayar..." min="0">
+        <button onclick="tambahBayar()">+ Catat</button>
+      </div>
+    </div>
+
+    <!-- HPP — disembunyikan saat print -->
+    <div class="card print-hide no-print">
+      <div class="card-title gray">HPP & Keuntungan — Tidak Tampil di Struk</div>
+      <div class="result-row"><span class="lbl">Total HPP Produksi</span><span class="val">${rp(r.totalHPP)}</span></div>
+      <div class="result-row"><span class="lbl">Total Tagihan</span><span class="val">${rp(r.totalTagihan)}</span></div>
+      <div class="result-row"><span class="lbl" style="color:var(--success);font-weight:700">Keuntungan</span><span class="val" style="color:var(--success)">${rp(r.totalTagihan-r.totalHPP)}</span></div>
+    </div>
+
+    <!-- TTD -->
+    <div class="card">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Tanda Tangan</div>
+      <div class="ttd-line">
+        <div class="ttd-box"><div class="line">Penerima Order</div></div>
+        <div class="ttd-box"><div class="line">Customer</div></div>
+      </div>
+    </div>
+
+    <div class="btn-row no-print">
+      <button class="btn-sec" onclick="window.print()">🖨️ Print Struk</button>
+      <button class="btn-sec" onclick="salinWA()">📋 Salin WA</button>
+    </div>
+  `;
+}
+
+// ===== SALIN WA =====
+function salinWA(){
+  if(currentIdx===null){showToast('⚠️ Belum ada hasil','#ff4757');return;}
+  const r=histori[currentIdx];
+  const st=getStatus(r); const sisa=getSisa(r); const tb=getTotalBayar(r);
+  let t=`*${r.namaToko||'Sablon Pro'}*\n`;
+  if(r.nomorHP) t+=`${r.nomorHP}\n`;
+  t+=`━━━━━━━━━━━━━━━━━━━━\n*NOTA ORDER SABLON*\n`;
+  t+=`No     : ${r.noOrder}\nCustomer: ${r.customer||'-'}\nProject : ${r.project||'-'}\nTgl     : ${r.waktu}\n`;
+  if(r.deadline) t+=`Deadline: ${formatDate(r.deadline)}\n`;
+  t+=`Total   : ${r.totalQty} pcs\n━━━━━━━━━━━━━━━━━━━━\n`;
+  r.sizeDetail.forEach(d=>{
+    if(d.p>0) t+=`${d.s} Pendek ×${d.p} = ${rp(d.hJualP*d.p)}\n`;
+    if(d.j>0) t+=`${d.s} Panjang ×${d.j} = ${rp(d.hJualJ*d.j)}\n`;
+  });
+  if(r.biayaTambahan>0) t+=`Biaya Lain = ${rp(r.biayaTambahan)}\n`;
+  t+=`━━━━━━━━━━━━━━━━━━━━\n*TOTAL : ${rp(r.totalTagihan)}*\nDibayar: ${rp(tb)}\nSisa   : ${sisa>0?rp(sisa):'LUNAS ✅'}\n`;
+  if(r.catatan) t+=`\nCatatan: ${r.catatan}`;
+  navigator.clipboard.writeText(t).then(()=>showToast('📋 Disalin!'));
+}
+
+// ===== ANALITIK =====
+function renderAnalitik(){
+  if(!histori.length){document.getElementById('analitikContainer').innerHTML='<div class="empty-state"><div class="icon">📈</div><p>Belum ada data.</p></div>';return;}
+  let omzet=0,hpp=0,qty=0,lunas=0,dp=0,belum=0,piutang=0;
+  histori.forEach(h=>{
+    omzet+=h.totalTagihan; hpp+=h.totalHPP||0; qty+=h.totalQty;
+    const st=getStatus(h);
+    if(st==='lunas') lunas++; else if(st==='dp') dp++; else belum++;
+    piutang+=getSisa(h);
+  });
+  document.getElementById('analitikContainer').innerHTML=`
+    <div class="card"><div class="card-title">Ringkasan Bisnis</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="sl">Total Order</div><div class="sv">${histori.length}</div></div>
+        <div class="stat-box"><div class="sl">Total Qty</div><div class="sv">${qty} pcs</div></div>
+        <div class="stat-box"><div class="sl">Total Omzet</div><div class="sv orange">${rp(omzet)}</div></div>
+        <div class="stat-box"><div class="sl">Total HPP</div><div class="sv red">${rp(hpp)}</div></div>
+        <div class="stat-box" style="grid-column:span 2"><div class="sl">Keuntungan Bersih</div><div class="sv green" style="font-size:19px">${rp(omzet-hpp)}</div></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">Status Pembayaran</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="sl">✅ Lunas</div><div class="sv green">${lunas} order</div></div>
+        <div class="stat-box"><div class="sl">⏳ DP</div><div class="sv orange">${dp} order</div></div>
+        <div class="stat-box"><div class="sl">❌ Belum Bayar</div><div class="sv red">${belum} order</div></div>
+        <div class="stat-box"><div class="sl">Piutang</div><div class="sv red">${rp(piutang)}</div></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">5 Order Terbaru</div>
+      ${histori.slice(-5).reverse().map(h=>`
+        <div class="result-row">
+          <span class="lbl">${h.noOrder} ${h.customer||'-'}</span>
+          <span class="val">${rp(h.totalTagihan)}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+renderHistori();
+</script>
+</body>
+</html>
