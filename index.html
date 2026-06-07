@@ -126,19 +126,25 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
 
 /* ===== PRINT ===== */
 @media print {
-  @page{size:80mm auto;margin:4mm;}
-  body{background:white!important;color:black!important;padding:0;font-family:'DM Mono',monospace;font-size:12px;width:80mm;}
-  .no-print,.tabs,.btn-main,.btn-row,.header,#tab-hitung,#tab-histori,#tab-analitik,#tab-toko,.print-hide,.modal-overlay{display:none!important;}
+  @page{size:80mm auto;margin:2mm 3mm;}
+  body{background:white!important;color:black!important;padding:0;font-family:'DM Mono',monospace;font-size:11px;width:80mm;margin:0;}
+  .no-print,.tabs,.btn-main,.btn-row,.header,#tab-hitung,#tab-histori,#tab-analitik,#tab-toko,.print-hide,.modal-overlay,.pay-item button{display:none!important;}
   #tab-hasil{display:block!important;}
-  .card{background:white!important;border:none!important;padding:0!important;margin-bottom:6px!important;}
-  *{color:black!important;background:white!important;border-color:#999!important;}
-  .big-box{border:1px solid #999!important;border-radius:0!important;padding:6px 8px!important;margin-top:3px!important;}
-  .big-box .val{font-size:14px!important;}
-  .result-row{padding:3px 0!important;font-size:11px!important;}
-  .status-badge{border:1px solid #000!important;color:black!important;background:white!important;}
-  .ttd-line{display:flex;justify-content:space-between;margin-top:28px;}
+  #hasilContainer{padding:0!important;}
+  .card{background:white!important;border:none!important;padding:0!important;margin-bottom:4px!important;box-shadow:none!important;}
+  *{color:black!important;background:white!important;border-color:#999!important;border-radius:0!important;}
+  .big-box{border:1px solid #000!important;padding:4px 6px!important;margin-top:2px!important;display:flex!important;justify-content:space-between!important;}
+  .big-box .val{font-size:13px!important;font-weight:900!important;}
+  .big-box .lbl{font-size:10px!important;font-weight:700!important;}
+  .result-row{padding:2px 0!important;font-size:10px!important;border-bottom:1px dashed #ccc!important;}
+  .result-row:last-child{border-bottom:none!important;}
+  .status-badge{border:1px solid #000!important;color:black!important;background:white!important;padding:1px 4px!important;font-size:9px!important;}
+  .card-title{font-size:9px!important;letter-spacing:1px;margin-bottom:4px!important;padding-bottom:2px;border-bottom:1px solid #000!important;}
+  .pay-item{background:white!important;border:none!important;border-radius:0!important;padding:2px 0!important;margin-bottom:2px!important;font-size:10px!important;}
+  .pi-info{font-size:9px!important;}
+  .ttd-line{display:flex!important;justify-content:space-between;margin-top:20px;}
   .ttd-box{text-align:center;width:45%;}
-  .ttd-box .line{border-top:1px solid #000;margin-top:22px;padding-top:3px;font-size:10px;}
+  .ttd-box .line{border-top:1px solid #000;margin-top:18px;padding-top:2px;font-size:9px;}
 }
 </style>
 </head>
@@ -154,6 +160,7 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
     </div>
   </div>
   <div class="header-right">
+    <button class="icon-btn" onclick="bukaModalBackup()" title="Backup Data">💾</button>
     <button class="icon-btn" onclick="bukaModalToko()" title="Pengaturan Toko">⚙️</button>
     <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
   </div>
@@ -267,12 +274,41 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
   </div>
 </div>
 
+<!-- ===== MODAL BACKUP ===== -->
+<div class="modal-overlay" id="modalBackup">
+  <div class="modal-box">
+    <button class="modal-close" onclick="tutupModalBackup()">✕</button>
+    <div class="modal-title">💾 Backup & Restore Data</div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Export — Simpan ke File</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Download semua data order ke file JSON. Simpan di HP/laptop sebagai cadangan.</p>
+      <button class="btn-main" onclick="exportData()" style="margin-bottom:0">📤 Export Data</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Import — Pulihkan dari File</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">⚠️ Data yang ada akan <b>digabung</b> dengan file backup (tidak ditimpa).</p>
+      <label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:var(--surface2);border:2px dashed var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;color:var(--muted)">
+        📂 Pilih File Backup (.json)
+        <input type="file" id="fileImport" accept=".json" style="display:none" onchange="importData(this)">
+      </label>
+    </div>
+
+    <div style="margin-top:12px;padding:12px;background:rgba(255,71,87,.08);border:1px solid var(--danger);border-radius:10px;">
+      <div style="font-size:11px;font-weight:700;color:var(--danger);margin-bottom:6px">🗑️ Reset Semua Data</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Hapus semua histori order. Tidak bisa dibatalkan!</p>
+      <button onclick="resetData()" style="width:100%;padding:10px;background:var(--danger);color:white;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer">🗑️ Reset Data</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 // ===== KONSTANTA =====
 const SIZES = ['S','M','L','XL','XXL','3XL','4XL','5XL'];
-const SIZE_EXTRA = {S:0,M:0,L:0,XL:0,XXL:10000,'3XL':15000,'4XL':20000,'5XL':20000};
+const SIZE_EXTRA = {S:0,M:0,L:0,XL:0,XXL:10000,'3XL':15000,'4XL':20000,'5XL':25000};
 const LENGAN_EXTRA = 10000;
 
 // ===== TOKO (permanen) =====
@@ -561,7 +597,6 @@ function renderHasil(r){
     <div class="card" style="text-align:center">
       <div style="font-size:17px;font-weight:800">${r.namaToko||'Sablon Pro'}</div>
       ${r.nomorHP?`<div style="font-size:12px;color:var(--muted)">${r.nomorHP}</div>`:''}
-      <div style="font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:1px">NOTA ORDER SABLON</div>
     </div>
 
     <div class="card">
@@ -629,7 +664,7 @@ function salinWA(){
   const st=getStatus(r); const sisa=getSisa(r); const tb=getTotalBayar(r);
   let t=`*${r.namaToko||'Sablon Pro'}*\n`;
   if(r.nomorHP) t+=`${r.nomorHP}\n`;
-  t+=`━━━━━━━━━━━━━━━━━━━━\n*NOTA ORDER SABLON*\n`;
+  t+=`━━━━━━━━━━━━━━━━━━━━\n`;
   t+=`No     : ${r.noOrder}\nCustomer: ${r.customer||'-'}\nProject : ${r.project||'-'}\nTgl     : ${r.waktu}\n`;
   if(r.deadline) t+=`Deadline: ${formatDate(r.deadline)}\n`;
   t+=`Total   : ${r.totalQty} pcs\n━━━━━━━━━━━━━━━━━━━━\n`;
@@ -678,6 +713,64 @@ function renderAnalitik(){
           <span class="val">${rp(h.totalTagihan)}</span>
         </div>`).join('')}
     </div>`;
+}
+
+// ===== BACKUP & RESTORE =====
+function bukaModalBackup(){
+  document.getElementById('modalBackup').classList.add('show');
+}
+function tutupModalBackup(){
+  document.getElementById('modalBackup').classList.remove('show');
+}
+
+function exportData(){
+  const payload = {
+    versi: 1,
+    exportedAt: nowStr(),
+    toko: tokoData,
+    histori: histori
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const tgl  = new Date().toISOString().slice(0,10);
+  a.href     = url;
+  a.download = `sablon-backup-${tgl}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Data berhasil diexport!');
+}
+
+function importData(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const data = JSON.parse(e.target.result);
+      const existing = new Set(histori.map(h=>h.noOrder+'_'+h.waktu));
+      let tambah = 0;
+      (data.histori||[]).forEach(h=>{
+        const key = h.noOrder+'_'+h.waktu;
+        if(!existing.has(key)){ histori.push(h); tambah++; }
+      });
+      saveHistori(); renderHistori();
+      tutupModalBackup();
+      showToast(`✅ ${tambah} order berhasil diimport!`);
+    } catch(err){
+      showToast('❌ File tidak valid!','#ff4757');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function resetData(){
+  if(!confirm('⚠️ YAKIN hapus SEMUA data order?\nTidak bisa dibatalkan!')) return;
+  histori = [];
+  saveHistori(); renderHistori();
+  tutupModalBackup();
+  showToast('🗑️ Semua data direset','#ff4757');
 }
 
 renderHistori();
