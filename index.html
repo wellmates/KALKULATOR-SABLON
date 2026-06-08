@@ -314,6 +314,13 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
     <textarea id="inputAlamat" placeholder="cth: Jl. Merdeka No. 10, Jakarta" oninput="autoSaveToko()" style="min-height:50px"></textarea>
     <label>Email</label>
     <input type="text" id="inputEmail" placeholder="cth: toko@email.com" oninput="autoSaveToko()">
+    <div style="margin-top:12px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);padding-top:8px;border-top:1px solid var(--border)">Info Rekening (Muncul di Invoice A4)</div>
+    <label>Nama Bank</label>
+    <input type="text" id="inputBank" placeholder="cth: Bank BCA" oninput="autoSaveToko()">
+    <label>Nomor Rekening</label>
+    <input type="text" id="inputNoRek" placeholder="cth: 1234567890" oninput="autoSaveToko()">
+    <label>Atas Nama</label>
+    <input type="text" id="inputAtasNama" placeholder="cth: Muhammad Haris" oninput="autoSaveToko()">
     <div style="margin-top:16px">
       <button class="btn-main" onclick="simpanToko()">💾 Simpan</button>
     </div>
@@ -451,6 +458,9 @@ let tokoData = JSON.parse(localStorage.getItem('sablonToko') || '{"nama":"","hp"
 if (!tokoData.jenisUsaha) tokoData.jenisUsaha = '';
 if (!tokoData.alamat)     tokoData.alamat     = '';
 if (!tokoData.email)      tokoData.email      = '';
+if (!tokoData.bank)       tokoData.bank       = '';
+if (!tokoData.noRek)      tokoData.noRek      = '';
+if (!tokoData.atasNama)   tokoData.atasNama   = '';
 
 function simpanToko(){
   tokoData.nama        = document.getElementById('inputNamaToko').value.trim();
@@ -458,6 +468,9 @@ function simpanToko(){
   tokoData.hp          = document.getElementById('inputNomorHP').value.trim();
   tokoData.alamat      = document.getElementById('inputAlamat').value.trim();
   tokoData.email       = document.getElementById('inputEmail').value.trim();
+  tokoData.bank        = document.getElementById('inputBank').value.trim();
+  tokoData.noRek       = document.getElementById('inputNoRek').value.trim();
+  tokoData.atasNama    = document.getElementById('inputAtasNama').value.trim();
   localStorage.setItem('sablonToko', JSON.stringify(tokoData));
   updateHeaderToko();
   tutupModalToko();
@@ -469,6 +482,9 @@ function autoSaveToko(){
   tokoData.hp          = document.getElementById('inputNomorHP').value.trim();
   tokoData.alamat      = document.getElementById('inputAlamat').value.trim();
   tokoData.email       = document.getElementById('inputEmail').value.trim();
+  tokoData.bank        = document.getElementById('inputBank').value.trim();
+  tokoData.noRek       = document.getElementById('inputNoRek').value.trim();
+  tokoData.atasNama    = document.getElementById('inputAtasNama').value.trim();
   localStorage.setItem('sablonToko', JSON.stringify(tokoData));
   updateHeaderToko();
 }
@@ -482,6 +498,9 @@ function bukaModalToko(){
   document.getElementById('inputNomorHP').value    = tokoData.hp;
   document.getElementById('inputAlamat').value     = tokoData.alamat || '';
   document.getElementById('inputEmail').value      = tokoData.email || '';
+  document.getElementById('inputBank').value        = tokoData.bank || '';
+  document.getElementById('inputNoRek').value       = tokoData.noRek || '';
+  document.getElementById('inputAtasNama').value    = tokoData.atasNama || '';
   document.getElementById('modalToko').classList.add('show');
 }
 function tutupModalToko(){
@@ -718,7 +737,7 @@ function hitung(){
 
   const order={
     noOrder:noOrder(), namaToko:tokoData.nama, nomorHP:tokoData.hp,
-    jenisUsaha:tokoData.jenisUsaha, alamat:tokoData.alamat, email:tokoData.email,
+    jenisUsaha:tokoData.jenisUsaha, alamat:tokoData.alamat, email:tokoData.email, bank:tokoData.bank, noRek:tokoData.noRek, atasNama:tokoData.atasNama,
     customer, project, deadline, catatan,
     produk: selectedProduk, cutting: selectedCutting,
     produkLabel: cfg.punya_cutting
@@ -951,173 +970,265 @@ function buildA4HTML(r){
   const sisa = getSisa(r);
   const kolomNama = r.kolomNama || ['Lengan Pendek','Lengan Panjang','Pjg+Rib'];
 
+  // Build table rows with alternating rows
   let tableRows = '';
+  let rowNum = 1;
   r.sizeDetail.forEach(d=>{
     const qtyArr   = d.qtyArr   || [d.p,d.j,d.r];
     const hJualArr = d.hJualArr || [d.hJualP,d.hJualJ,d.hJualR];
     kolomNama.forEach((kol,i)=>{
       const q=qtyArr[i]||0; const h=hJualArr[i]||0;
-      if(q>0) tableRows+=`<tr><td>${d.s} ${kol}</td><td>${q} pcs</td><td>${rp(h)}/pcs</td><td>${rp(h*q)}</td></tr>`;
+      if(q>0){
+        const bg = rowNum%2===0?'background:#f9f9f9':'';
+        tableRows+=`<tr style="${bg}"><td style="text-align:center">${rowNum++}</td><td>${d.s} — ${kol}</td><td style="text-align:center">${q}</td><td style="text-align:right">Rp, ${Math.round(h).toLocaleString('id-ID')}</td><td style="text-align:right">Rp, ${Math.round(h*q).toLocaleString('id-ID')}</td></tr>`;
+      }
     });
   });
-  if(r.biayaLabel>0) tableRows+=`<tr><td colspan="3">Label</td><td>${rp(r.biayaLabel)}</td></tr>`;
-  if(r.hangtag>0)    tableRows+=`<tr><td colspan="3">Hangtag</td><td>${rp(r.hangtag)}</td></tr>`;
-  if(r.packing>0)    tableRows+=`<tr><td colspan="3">Packing</td><td>${rp(r.packing)}</td></tr>`;
-  if(r.ongkir>0)     tableRows+=`<tr><td colspan="3">Ongkir</td><td>${rp(r.ongkir)}</td></tr>`;
-  if(r.lain>0)       tableRows+=`<tr><td colspan="3">Lain-lain</td><td>${rp(r.lain)}</td></tr>`;
+  if(r.biayaLabel>0){ const bg=rowNum%2===0?'background:#f9f9f9':''; tableRows+=`<tr style="${bg}"><td style="text-align:center">${rowNum++}</td><td>Label</td><td style="text-align:center">—</td><td></td><td style="text-align:right">Rp, ${Math.round(r.biayaLabel).toLocaleString('id-ID')}</td></tr>`; }
+  if(r.hangtag>0){    const bg=rowNum%2===0?'background:#f9f9f9':''; tableRows+=`<tr style="${bg}"><td style="text-align:center">${rowNum++}</td><td>Hangtag</td><td style="text-align:center">—</td><td></td><td style="text-align:right">Rp, ${Math.round(r.hangtag).toLocaleString('id-ID')}</td></tr>`; }
+  if(r.packing>0){    const bg=rowNum%2===0?'background:#f9f9f9':''; tableRows+=`<tr style="${bg}"><td style="text-align:center">${rowNum++}</td><td>Packing</td><td style="text-align:center">—</td><td></td><td style="text-align:right">Rp, ${Math.round(r.packing).toLocaleString('id-ID')}</td></tr>`; }
+  if(r.ongkir>0){     const bg=rowNum%2===0?'background:#f9f9f9':''; tableRows+=`<tr style="${bg}"><td style="text-align:center">${rowNum++}</td><td>Ongkir</td><td style="text-align:center">—</td><td></td><td style="text-align:right">Rp, ${Math.round(r.ongkir).toLocaleString('id-ID')}</td></tr>`; }
+  if(r.lain>0){       const bg=rowNum%2===0?'background:#f9f9f9':''; tableRows+=`<tr style="${bg}"><td style="text-align:center">${rowNum++}</td><td>Lain-lain</td><td style="text-align:center">—</td><td></td><td style="text-align:right">Rp, ${Math.round(r.lain).toLocaleString('id-ID')}</td></tr>`; }
 
+  // Build size detail text (e.g. "M 4pcs / L 8pcs")
+  let sizeLines = [];
+  r.sizeDetail.forEach(d=>{
+    const qtyArr = d.qtyArr || [d.p,d.j,d.r];
+    const total = qtyArr.reduce((a,b)=>a+(b||0),0);
+    if(total>0) sizeLines.push(`${d.s} ${total}pcs`);
+  });
+
+  // Payment rows
   let payRows = '';
   (r.payments||[]).forEach(p=>{
-    payRows+=`<div class="inv-row"><span class="key">${p.waktu}</span><span class="val">${rp(p.jumlah)}</span></div>`;
+    payRows+=`<tr><td style="color:#444;font-size:12px">${p.waktu}</td><td style="text-align:right;font-weight:700">Rp, ${Math.round(p.jumlah).toLocaleString('id-ID')}</td></tr>`;
   });
-  if(!payRows) payRows=`<div class="inv-row"><span class="key" style="color:#aaa">Belum ada pembayaran</span><span class="val">—</span></div>`;
+  if(!payRows) payRows=`<tr><td colspan="2" style="color:#aaa;font-size:12px;text-align:center">Belum ada pembayaran</td></tr>`;
 
-  const statusCls = st==='lunas'?'lunas':st==='dp'?'dp':'belum';
-  const statusTxt = st==='lunas'?'LUNAS':st==='dp'?'DP':'BELUM BAYAR';
-  const statusColor = st==='lunas'?'#d4edda;color:#155724':st==='dp'?'#fff3cd;color:#856404':'#f8d7da;color:#721c24';
+  const statusTxt = st==='lunas'?'LUNAS':st==='dp'?'DP / BELUM LUNAS':'BELUM BAYAR';
+  const statusColor = st==='lunas'?'#155724':st==='dp'?'#856404':'#721c24';
+  const statusBg    = st==='lunas'?'#d4edda':st==='dp'?'#fff3cd':'#f8d7da';
 
-  const tokoInfo = [r.jenisUsaha,r.nomorHP,r.alamat,r.email].filter(Boolean).join(' &nbsp;·&nbsp; ');
+  // Produk detail line
+  const produkLine = r.produkLabel ? r.produkLabel.toUpperCase() : '';
+  const sizeStr = sizeLines.join(' / ');
+
+  // Toko info
+  const namaTokoDisplay = r.namaToko || 'WELLMATES';
+  const jenisUsahaDisplay = r.jenisUsaha || 'STUDIO.///SCREEN PRINTING';
+  const alamatLines = (r.alamat||'').split('\n').filter(Boolean);
+  const alamatHTML = alamatLines.map(l=>`<div>${l}</div>`).join('');
+  const hpDisplay = r.nomorHP || '';
+
+  // Bank info from tokoData
+  const bankInfo = r.bank || tokoData.bank || '';
+  const noRekInfo = r.noRek || tokoData.noRek || '';
+  const atasNamaInfo = r.atasNama || tokoData.atasNama || '';
 
   return `<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Invoice ${r.noOrder} — ${r.namaToko||'WELLMATES'}</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Invoice ${r.noOrder} — ${namaTokoDisplay}</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  @page { size: A4; margin: 14mm 16mm; }
+  @page { size: A4; margin: 12mm 15mm; }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Syne',sans-serif; font-size:13px; color:#111; background:white; }
+  body { font-family:'Archivo',sans-serif; font-size:13px; color:#111; background:white; }
 
-  /* HEADER */
-  .inv-header {
+  /* ===== HEADER ===== */
+  .header-wrap {
     display:flex; justify-content:space-between; align-items:flex-start;
-    border-bottom:3px solid #111; padding-bottom:14px; margin-bottom:20px;
+    padding-bottom:14px; margin-bottom:0;
   }
-  .inv-toko-nama { font-size:28px; font-weight:900; letter-spacing:-0.5px; line-height:1.1; }
-  .inv-toko-sub  { font-size:11.5px; color:#666; margin-top:5px; line-height:1.7; }
-  .inv-label-box { text-align:right; }
-  .inv-word { font-size:40px; font-weight:900; letter-spacing:5px; line-height:1; }
-  .inv-no   { font-size:14px; font-family:'DM Mono',monospace; color:#555; margin-top:5px; }
-  .inv-tgl  { font-size:11px; font-family:'DM Mono',monospace; color:#888; margin-top:2px; }
+  .logo-area { display:flex; align-items:center; gap:12px; }
+  .logo-icon {
+    width:52px; height:52px; background:#111; border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    color:white; font-size:22px; font-weight:900; letter-spacing:-1px; flex-shrink:0;
+  }
+  .toko-nama { font-family:'Archivo Black',sans-serif; font-size:26px; line-height:1; letter-spacing:1px; }
+  .toko-sub  { font-size:10px; font-weight:700; letter-spacing:3px; color:#555; margin-top:3px; text-transform:uppercase; }
+  .toko-addr { font-size:11px; color:#444; margin-top:6px; line-height:1.7; }
 
-  /* DUA KOLOM */
-  .inv-two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
-  .inv-section-title {
-    font-size:9.5px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase;
-    color:#999; border-bottom:1.5px solid #e0e0e0; padding-bottom:5px; margin-bottom:10px;
+  .header-right { text-align:right; }
+  .header-kota  { font-size:12px; font-weight:700; color:#333; margin-bottom:4px; }
+  .customer-name {
+    font-family:'Archivo Black',sans-serif; font-size:30px; letter-spacing:1px;
+    border-bottom:2.5px solid #111; padding-bottom:4px; margin-bottom:4px;
+    min-width:200px; display:inline-block;
   }
-  .inv-row {
-    display:flex; justify-content:space-between; align-items:baseline;
-    font-size:12px; padding:5px 0; border-bottom:1px dashed #ebebeb;
+  .no-invoice-label { font-size:11px; color:#888; margin-top:2px; }
+
+  /* Divider */
+  .divider-thick { border:none; border-top:2.5px solid #111; margin:12px 0 0 0; }
+  .invoice-title-bar {
+    background:#111; color:white;
+    text-align:center; padding:10px 0;
+    font-family:'Archivo Black',sans-serif; font-size:22px; letter-spacing:8px;
+    margin-bottom:0;
   }
-  .inv-row:last-child { border-bottom:none; }
-  .inv-row .key { color:#666; font-weight:600; }
-  .inv-row .val { font-family:'DM Mono',monospace; font-weight:700; text-align:right; }
-  .inv-status {
-    display:inline-block; padding:2px 10px; border-radius:20px;
-    font-weight:800; font-size:10px; letter-spacing:1px; text-transform:uppercase;
-    background:${statusColor.split(';')[0]};color:${statusColor.split(';')[1].replace('color:','')};
+  .invoice-no-bar {
+    border:1.5px solid #111; border-top:none;
+    padding:5px 12px; font-size:11px; color:#555; font-weight:600;
+    display:flex; justify-content:space-between;
+    margin-bottom:16px;
   }
 
-  /* TABEL RINCIAN */
-  .inv-table { width:100%; border-collapse:collapse; margin-bottom:0; font-size:12.5px; }
-  .inv-table thead tr { background:#111; color:white; }
-  .inv-table th {
-    padding:9px 12px; text-align:left;
-    font-size:9px; letter-spacing:1.5px; text-transform:uppercase; font-weight:700;
+  /* ===== TABLE ===== */
+  table.inv { width:100%; border-collapse:collapse; font-size:13px; }
+  table.inv thead tr { background:#111; color:white; }
+  table.inv th { padding:9px 10px; font-size:11px; font-weight:700; letter-spacing:0.5px; }
+  table.inv th:first-child { text-align:center; width:40px; }
+  table.inv th:nth-child(3) { text-align:center; width:80px; }
+  table.inv th:nth-child(4) { text-align:right; }
+  table.inv th:last-child   { text-align:right; }
+  table.inv td { padding:9px 10px; border:1px solid #ddd; font-size:13px; }
+  table.inv td:first-child { text-align:center; font-weight:700; }
+  table.inv td:nth-child(3) { text-align:center; }
+  table.inv td:nth-child(4) { text-align:right; }
+  table.inv td:last-child   { text-align:right; font-weight:700; }
+  table.inv tbody tr:last-child td { }
+  table.inv tfoot td {
+    border:1.5px solid #111; padding:8px 10px;
+    font-weight:800; font-size:14px;
   }
-  .inv-table th:last-child { text-align:right; }
-  .inv-table td { padding:9px 12px; border-bottom:1px solid #f0f0f0; font-family:'DM Mono',monospace; }
-  .inv-table td:last-child { text-align:right; font-weight:700; }
-  .inv-table tbody tr:last-child td { border-bottom:none; }
-  .inv-table tfoot tr { border-top:2px solid #111; }
-  .inv-table tfoot td { padding:10px 12px; font-weight:900; font-size:14px; border-bottom:none; }
-  .inv-table tfoot td:first-child { font-family:'Syne',sans-serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:#666; vertical-align:middle; }
-  .inv-table tfoot td:last-child { text-align:right; font-family:'DM Mono',monospace; font-size:18px; }
+  table.inv tfoot td:first-child { text-align:right; font-size:13px; font-weight:700; border-right:none; }
+  table.inv tfoot .qty-cell { text-align:center; font-weight:700; border-left:none; border-right:none; }
+  table.inv tfoot .total-label { border-left:none; border-right:none; text-align:right; font-size:13px; font-weight:700; }
+  table.inv tfoot .total-val { text-align:right; font-size:15px; font-weight:800; border-left:none; }
 
-  /* KOTAK BAWAH */
-  .inv-bottom { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; }
-  .inv-catatan {
-    font-size:11px; color:#555; border:1px dashed #ccc;
-    padding:12px 14px; line-height:1.7; border-radius:4px;
+  /* ===== PRODUK INFO ===== */
+  .produk-info {
+    border:1.5px solid #111; padding:10px 14px; margin:12px 0;
+    font-size:12px; line-height:1.9;
   }
-  .inv-catatan-title { font-size:9px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#999; margin-bottom:6px; }
-  .inv-total-box { background:#111; color:white; padding:18px 20px; border-radius:6px; }
-  .inv-total-box .tl { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#aaa; margin-bottom:6px; }
-  .inv-total-box .tv { font-size:26px; font-weight:900; font-family:'DM Mono',monospace; }
-  .inv-total-box .divider { border-top:1px solid #444; margin:10px 0; }
-  .inv-total-box .ts { font-size:11px; color:#bbb; font-family:'DM Mono',monospace; margin-top:4px; display:flex; justify-content:space-between; }
-  .inv-total-box .ts span { color:white; font-weight:700; }
+  .produk-info strong { font-weight:800; }
 
-  /* FOOTER */
-  .inv-footer {
-    margin-top:32px; border-top:1px solid #eee; padding-top:12px;
-    font-size:10px; color:#bbb; text-align:center; line-height:1.6;
+  /* ===== BOTTOM SECTION ===== */
+  .bottom-wrap { display:flex; justify-content:space-between; align-items:flex-start; margin-top:16px; gap:20px; }
+  .bottom-left { flex:1; }
+  .bottom-right { text-align:right; min-width:220px; }
+
+  .pay-note { font-size:12px; color:#333; line-height:1.8; margin-bottom:10px; }
+  .bank-box { border:1.5px solid #111; padding:10px 14px; display:inline-block; text-align:left; }
+  .bank-box .bank-label { font-size:11px; color:#555; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  .bank-box .bank-name  { font-size:16px; font-weight:900; }
+  .bank-box .bank-rek   { font-size:14px; font-weight:700; margin-top:2px; }
+  .bank-box .bank-atas  { font-size:12px; color:#333; font-weight:600; margin-top:2px; }
+
+  .ttd-area { text-align:right; margin-top:12px; }
+  .ttd-label { font-size:11px; color:#555; font-weight:700; margin-bottom:60px; }
+  .ttd-nama  { font-size:14px; font-weight:800; border-top:1.5px solid #111; padding-top:6px; display:inline-block; min-width:150px; text-align:center; }
+
+  /* ===== STATUS ===== */
+  .status-box {
+    display:inline-block; padding:4px 16px; font-weight:800; font-size:11px;
+    letter-spacing:2px; text-transform:uppercase; border-radius:3px;
+    background:${statusBg}; color:${statusColor}; border:1.5px solid ${statusColor};
+    margin-left:8px; vertical-align:middle;
   }
+
+  /* ===== CATATAN ===== */
+  .catatan-box { margin-top:10px; }
+  .catatan-title { font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#888; margin-bottom:4px; }
+  .catatan-body { font-size:12px; color:#444; border:1px dashed #ccc; padding:8px 12px; line-height:1.7; }
+
+  /* Payment mini table */
+  table.pay-tbl { width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
+  table.pay-tbl td { padding:4px 0; border-bottom:1px dashed #ddd; }
+  table.pay-tbl tr:last-child td { border-bottom:none; }
+  .pay-summary { border-top:2px solid #111; margin-top:6px; padding-top:6px; font-size:13px; }
+  .pay-summary .row { display:flex; justify-content:space-between; margin-top:4px; }
+  .pay-summary .row.sisa { color:${sisa>0?'#721c24':'#155724'}; font-weight:800; }
+
 </style>
 </head>
 <body>
-  <div class="inv-header">
-    <div>
-      <div class="inv-toko-nama">${r.namaToko||'WELLMATES'}</div>
-      <div class="inv-toko-sub">${tokoInfo}</div>
+
+  <!-- HEADER -->
+  <div class="header-wrap">
+    <div class="logo-area">
+      <div class="logo-icon">W</div>
+      <div>
+        <div class="toko-nama">${namaTokoDisplay}</div>
+        <div class="toko-sub">${jenisUsahaDisplay}</div>
+        <div class="toko-addr">
+          ${alamatHTML || ''}
+          ${hpDisplay ? `<div>${hpDisplay}</div>` : ''}
+        </div>
+      </div>
     </div>
-    <div class="inv-label-box">
-      <div class="inv-word">INVOICE</div>
-      <div class="inv-no">${r.noOrder}</div>
-      <div class="inv-tgl">${r.waktu}</div>
+    <div class="header-right">
+      <div class="header-kota">${r.alamat?r.alamat.split('\n')[0]:'Tangerang'} &nbsp;:&nbsp; ${r.waktu}</div>
+      <div class="customer-name">${r.customer||'Customer'}</div>
+      <div class="no-invoice-label">Nama Customer</div>
     </div>
   </div>
 
-  <div class="inv-two-col">
-    <div>
-      <div class="inv-section-title">Info Order</div>
-      <div class="inv-row"><span class="key">Customer</span><span class="val">${r.customer||'-'}</span></div>
-      <div class="inv-row"><span class="key">Project</span><span class="val">${r.project||'-'}</span></div>
-      ${r.produkLabel?`<div class="inv-row"><span class="key">Produk</span><span class="val">${r.produkLabel}</span></div>`:''}
-      <div class="inv-row"><span class="key">Tanggal Order</span><span class="val">${r.waktu}</span></div>
-      <div class="inv-row"><span class="key">Deadline</span><span class="val">${formatDate(r.deadline)}</span></div>
-      <div class="inv-row"><span class="key">Total Qty</span><span class="val">${r.totalQty} pcs</span></div>
-      <div class="inv-row"><span class="key">Status</span><span class="val"><span class="inv-status">${statusTxt}</span></span></div>
-    </div>
-    <div>
-      <div class="inv-section-title">Riwayat Pembayaran</div>
-      ${payRows}
-      <div class="inv-row" style="margin-top:8px;border-top:1.5px solid #ddd;padding-top:8px;border-bottom:none">
-        <span class="key" style="font-weight:800;color:#111">Total Dibayar</span>
-        <span class="val" style="color:#155724">${rp(totalBayar)}</span>
-      </div>
-      <div class="inv-row" style="border-bottom:none">
-        <span class="key" style="font-weight:800;color:#111">Sisa Tagihan</span>
-        <span class="val" style="color:${sisa>0?'#721c24':'#155724'}">${sisa>0?rp(sisa):'Lunas ✅'}</span>
-      </div>
-    </div>
+  <hr class="divider-thick">
+  <div class="invoice-title-bar">INVOICE</div>
+  <div class="invoice-no-bar">
+    <span>NO. INVOICE : ${r.noOrder}</span>
+    <span>${r.project||''} ${r.produkLabel?'· '+r.produkLabel:''} ${r.deadline?'· Deadline: '+formatDate(r.deadline):''}</span>
   </div>
 
-  <div class="inv-section-title">Rincian Order</div>
-  <table class="inv-table">
-    <thead><tr><th>Item</th><th>Qty</th><th>Harga Satuan</th><th>Subtotal</th></tr></thead>
+  <!-- TABEL UTAMA -->
+  <table class="inv">
+    <thead>
+      <tr>
+        <th>No</th>
+        <th style="text-align:left">Nama Barang</th>
+        <th>Jumlah</th>
+        <th>Harga</th>
+        <th>Total</th>
+      </tr>
+    </thead>
     <tbody>${tableRows}</tbody>
-    <tfoot><tr><td>Total Tagihan</td><td></td><td></td><td>${rp(r.totalTagihan)}</td></tr></tfoot>
+    <tfoot>
+      <tr>
+        <td style="text-align:right;font-size:13px;font-weight:700;border-right:none" colspan="2"></td>
+        <td class="qty-cell" style="text-align:center;font-weight:800;border-left:none;border-right:none">${r.totalQty}</td>
+        <td class="total-label" style="text-align:right;font-weight:700;border-left:none;border-right:none">Total</td>
+        <td class="total-val" style="text-align:right;font-weight:900;font-size:15px;border-left:none;font-style:italic">Rp, ${Math.round(r.totalTagihan).toLocaleString('id-ID')}</td>
+      </tr>
+    </tfoot>
   </table>
 
-  <div class="inv-bottom">
-    <div>
-      ${r.catatan?`<div class="inv-catatan-title">Catatan</div><div class="inv-catatan">${r.catatan}</div>`:''}
+  <!-- BOTTOM -->
+  <div class="bottom-wrap">
+    <div class="bottom-left">
+      ${r.payments&&r.payments.length>0?`
+      <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:4px">Riwayat Pembayaran</div>
+      <table class="pay-tbl"><tbody>${payRows}</tbody></table>
+      <div class="pay-summary">
+        <div class="row"><span>Total Dibayar</span><span>Rp, ${Math.round(totalBayar).toLocaleString('id-ID')}</span></div>
+        <div class="row sisa"><span>Sisa Tagihan</span><span>${sisa>0?'Rp, '+Math.round(sisa).toLocaleString('id-ID'):'Lunas ✅'}</span></div>
+      </div>`:''}
+      ${r.catatan?`<div class="catatan-box ${r.payments&&r.payments.length>0?'':''}">
+        <div class="catatan-title">Catatan</div>
+        <div class="catatan-body">${r.catatan}</div>
+      </div>`:''}
+      <div style="margin-top:${r.payments&&r.payments.length>0||r.catatan?'10px':'0px'};font-size:12px;line-height:1.8;color:#333">
+        Pembayaran Invoice ini bisa dilakukan secara tunai<br>
+        atau transfer melalui Rekening dibawah ini.
+      </div>
+      ${bankInfo||noRekInfo?`
+      <div class="bank-box" style="margin-top:10px">
+        <div class="bank-label">Pembayaran Via Transfer</div>
+        ${bankInfo?`<div class="bank-name">${bankInfo}</div>`:''}
+        ${noRekInfo?`<div class="bank-rek">No. Rek : ${noRekInfo}</div>`:''}
+        ${atasNamaInfo?`<div class="bank-atas">Atas Nama : ${atasNamaInfo}</div>`:''}
+      </div>`:''}
     </div>
-    <div class="inv-total-box">
-      <div class="tl">Total Tagihan</div>
-      <div class="tv">${rp(r.totalTagihan)}</div>
-      <div class="divider"></div>
-      <div class="ts">Dibayar <span>${rp(totalBayar)}</span></div>
-      <div class="ts">Sisa <span>${sisa>0?rp(sisa):'Lunas ✅'}</span></div>
-    </div>
-  </div>
 
-  <div class="inv-footer">
-    Terima kasih telah mempercayakan pesanan Anda kepada <strong>${r.namaToko||'kami'}</strong>.
-    ${r.nomorHP?`Hubungi kami di <strong>${r.nomorHP}</strong> untuk pertanyaan lebih lanjut.`:''}
+    <div class="bottom-right">
+      <div style="font-size:12px;font-weight:700;margin-bottom:8px">Status Pembayaran : <span class="status-box">${statusTxt}</span></div>
+      <div class="ttd-area">
+        <div class="ttd-label">Hormat Kami,</div>
+        <div class="ttd-nama">${r.namaToko||namaTokoDisplay}</div>
+      </div>
+    </div>
   </div>
 
   <script>window.onload=function(){window.print();}<\/script>
