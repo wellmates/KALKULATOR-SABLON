@@ -314,6 +314,17 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
     <textarea id="inputAlamat" placeholder="cth: Jl. Merdeka No. 10, Jakarta" oninput="autoSaveToko()" style="min-height:50px"></textarea>
     <label>Email</label>
     <input type="text" id="inputEmail" placeholder="cth: toko@email.com" oninput="autoSaveToko()">
+    <label>Kota (untuk invoice)</label>
+    <input type="text" id="inputKotaToko" placeholder="cth: Tangerang" oninput="autoSaveToko()">
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+      <div style="font-size:10px;font-weight:700;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">💳 Info Rekening Bank</div>
+      <label>Nama Bank</label>
+      <input type="text" id="inputNamaBank" placeholder="cth: BCA" oninput="autoSaveToko()">
+      <label>Nomor Rekening</label>
+      <input type="text" id="inputNoRek" placeholder="cth: 5940533092" oninput="autoSaveToko()">
+      <label>Atas Nama</label>
+      <input type="text" id="inputAtasNama" placeholder="cth: Muhammad Haris" oninput="autoSaveToko()">
+    </div>
     <div style="margin-top:16px">
       <button class="btn-main" onclick="simpanToko()">💾 Simpan</button>
     </div>
@@ -447,28 +458,34 @@ function updateProdukLabel(){
 
 // ===== TOKO (permanen) =====
 let tokoData = JSON.parse(localStorage.getItem('sablonToko') || '{"nama":"","hp":"","jenisUsaha":"","alamat":"","email":""}');
-// Pastikan field baru ada untuk data lama
 if (!tokoData.jenisUsaha) tokoData.jenisUsaha = '';
 if (!tokoData.alamat)     tokoData.alamat     = '';
 if (!tokoData.email)      tokoData.email      = '';
+if (!tokoData.kotaToko)   tokoData.kotaToko   = '';
+if (!tokoData.namaBank)   tokoData.namaBank   = '';
+if (!tokoData.noRek)      tokoData.noRek      = '';
+if (!tokoData.atasNama)   tokoData.atasNama   = '';
 
+function collectTokoFields(){
+  tokoData.nama      = document.getElementById('inputNamaToko').value.trim();
+  tokoData.jenisUsaha= document.getElementById('inputJenisUsaha').value.trim();
+  tokoData.hp        = document.getElementById('inputNomorHP').value.trim();
+  tokoData.alamat    = document.getElementById('inputAlamat').value.trim();
+  tokoData.email     = document.getElementById('inputEmail').value.trim();
+  tokoData.kotaToko  = document.getElementById('inputKotaToko').value.trim();
+  tokoData.namaBank  = document.getElementById('inputNamaBank').value.trim();
+  tokoData.noRek     = document.getElementById('inputNoRek').value.trim();
+  tokoData.atasNama  = document.getElementById('inputAtasNama').value.trim();
+}
 function simpanToko(){
-  tokoData.nama        = document.getElementById('inputNamaToko').value.trim();
-  tokoData.jenisUsaha  = document.getElementById('inputJenisUsaha').value.trim();
-  tokoData.hp          = document.getElementById('inputNomorHP').value.trim();
-  tokoData.alamat      = document.getElementById('inputAlamat').value.trim();
-  tokoData.email       = document.getElementById('inputEmail').value.trim();
+  collectTokoFields();
   localStorage.setItem('sablonToko', JSON.stringify(tokoData));
   updateHeaderToko();
   tutupModalToko();
   showToast('✅ Info toko disimpan!');
 }
 function autoSaveToko(){
-  tokoData.nama        = document.getElementById('inputNamaToko').value.trim();
-  tokoData.jenisUsaha  = document.getElementById('inputJenisUsaha').value.trim();
-  tokoData.hp          = document.getElementById('inputNomorHP').value.trim();
-  tokoData.alamat      = document.getElementById('inputAlamat').value.trim();
-  tokoData.email       = document.getElementById('inputEmail').value.trim();
+  collectTokoFields();
   localStorage.setItem('sablonToko', JSON.stringify(tokoData));
   updateHeaderToko();
 }
@@ -482,6 +499,10 @@ function bukaModalToko(){
   document.getElementById('inputNomorHP').value    = tokoData.hp;
   document.getElementById('inputAlamat').value     = tokoData.alamat || '';
   document.getElementById('inputEmail').value      = tokoData.email || '';
+  document.getElementById('inputKotaToko').value   = tokoData.kotaToko || '';
+  document.getElementById('inputNamaBank').value   = tokoData.namaBank || '';
+  document.getElementById('inputNoRek').value      = tokoData.noRek || '';
+  document.getElementById('inputAtasNama').value   = tokoData.atasNama || '';
   document.getElementById('modalToko').classList.add('show');
 }
 function tutupModalToko(){
@@ -719,6 +740,7 @@ function hitung(){
   const order={
     noOrder:noOrder(), namaToko:tokoData.nama, nomorHP:tokoData.hp,
     jenisUsaha:tokoData.jenisUsaha, alamat:tokoData.alamat, email:tokoData.email,
+    kotaToko:tokoData.kotaToko, namaBank:tokoData.namaBank, noRek:tokoData.noRek, atasNama:tokoData.atasNama,
     customer, project, deadline, catatan,
     produk: selectedProduk, cutting: selectedCutting,
     produkLabel: cfg.punya_cutting
@@ -951,176 +973,242 @@ function buildA4HTML(r){
   const sisa = getSisa(r);
   const kolomNama = r.kolomNama || ['Lengan Pendek','Lengan Panjang','Pjg+Rib'];
 
+  // Build table rows — group by size, list ukuran detail per baris
   let tableRows = '';
+  let noItem = 1;
+
+  // Group detail per produk/project sebagai satu baris
+  let namaBarang = r.project || r.produkLabel || 'Order Sablon';
+  let detailUkuran = '';
+  r.sizeDetail.forEach(d=>{
+    const qtyArr = d.qtyArr || [d.p,d.j,d.r];
+    kolomNama.forEach((kol,i)=>{
+      const q = qtyArr[i]||0;
+      if(q>0) detailUkuran += `${d.s} ${kol}: ${q} pcs<br>`;
+    });
+  });
+
+  // Harga satuan = harga jual base (ambil dari row pertama yg ada qty)
+  let hargaSatuan = 0;
+  outer: for(const d of r.sizeDetail){
+    const hJualArr = d.hJualArr || [d.hJualP,d.hJualJ,d.hJualR];
+    const qtyArr   = d.qtyArr   || [d.p,d.j,d.r];
+    for(let i=0;i<hJualArr.length;i++){
+      if((qtyArr[i]||0)>0 && (hJualArr[i]||0)>0){ hargaSatuan=hJualArr[i]; break outer; }
+    }
+  }
+
+  // Hitung subtotal hanya dari pakaian (tanpa biaya tambahan)
+  let subtotalPakaian = 0;
   r.sizeDetail.forEach(d=>{
     const qtyArr   = d.qtyArr   || [d.p,d.j,d.r];
     const hJualArr = d.hJualArr || [d.hJualP,d.hJualJ,d.hJualR];
-    kolomNama.forEach((kol,i)=>{
-      const q=qtyArr[i]||0; const h=hJualArr[i]||0;
-      if(q>0) tableRows+=`<tr><td>${d.s} ${kol}</td><td>${q} pcs</td><td>${rp(h)}/pcs</td><td>${rp(h*q)}</td></tr>`;
-    });
+    kolomNama.forEach((_,i)=>{ subtotalPakaian += (qtyArr[i]||0)*(hJualArr[i]||0); });
   });
-  if(r.biayaLabel>0) tableRows+=`<tr><td colspan="3">Label</td><td>${rp(r.biayaLabel)}</td></tr>`;
-  if(r.hangtag>0)    tableRows+=`<tr><td colspan="3">Hangtag</td><td>${rp(r.hangtag)}</td></tr>`;
-  if(r.packing>0)    tableRows+=`<tr><td colspan="3">Packing</td><td>${rp(r.packing)}</td></tr>`;
-  if(r.ongkir>0)     tableRows+=`<tr><td colspan="3">Ongkir</td><td>${rp(r.ongkir)}</td></tr>`;
-  if(r.lain>0)       tableRows+=`<tr><td colspan="3">Lain-lain</td><td>${rp(r.lain)}</td></tr>`;
 
-  let payRows = '';
+  tableRows += `<tr>
+    <td style="text-align:center">${noItem++}</td>
+    <td><strong>${namaBarang}</strong>${r.produkLabel?`<br><span style="font-size:11px;color:#555">${r.produkLabel}</span>`:''}
+      ${detailUkuran?`<br><span style="font-size:11px;color:#333">${detailUkuran}</span>`:''}
+      ${r.catatan?`<br><span style="font-size:11px;color:#777;font-style:italic">${r.catatan}</span>`:''}
+    </td>
+    <td style="text-align:center">${r.totalQty}</td>
+    <td>${rp(hargaSatuan)}</td>
+    <td>${rp(subtotalPakaian)}</td>
+  </tr>`;
+
+  // Biaya tambahan sebagai baris terpisah
+  if(r.biayaLabel>0) tableRows+=`<tr><td style="text-align:center">${noItem++}</td><td>Label</td><td style="text-align:center">-</td><td>-</td><td>${rp(r.biayaLabel)}</td></tr>`;
+  if(r.hangtag>0)    tableRows+=`<tr><td style="text-align:center">${noItem++}</td><td>Hangtag</td><td style="text-align:center">-</td><td>-</td><td>${rp(r.hangtag)}</td></tr>`;
+  if(r.packing>0)    tableRows+=`<tr><td style="text-align:center">${noItem++}</td><td>Packing</td><td style="text-align:center">-</td><td>-</td><td>${rp(r.packing)}</td></tr>`;
+  if(r.ongkir>0)     tableRows+=`<tr><td style="text-align:center">${noItem++}</td><td>Ongkir</td><td style="text-align:center">-</td><td>-</td><td>${rp(r.ongkir)}</td></tr>`;
+  if(r.lain>0)       tableRows+=`<tr><td style="text-align:center">${noItem++}</td><td>Lain-lain</td><td style="text-align:center">-</td><td>-</td><td>${rp(r.lain)}</td></tr>`;
+
+  // Payment history rows
+  let paymentInfo = '';
   (r.payments||[]).forEach(p=>{
-    payRows+=`<div class="inv-row"><span class="key">${p.waktu}</span><span class="val">${rp(p.jumlah)}</span></div>`;
+    paymentInfo += `<tr><td>${p.waktu}</td><td>${rp(p.jumlah)}</td></tr>`;
   });
-  if(!payRows) payRows=`<div class="inv-row"><span class="key" style="color:#aaa">Belum ada pembayaran</span><span class="val">—</span></div>`;
 
-  const statusCls = st==='lunas'?'lunas':st==='dp'?'dp':'belum';
-  const statusTxt = st==='lunas'?'LUNAS':st==='dp'?'DP':'BELUM BAYAR';
-  const statusColor = st==='lunas'?'#d4edda;color:#155724':st==='dp'?'#fff3cd;color:#856404':'#f8d7da;color:#721c24';
+  const statusTxt = st==='lunas'?'LUNAS':st==='dp'?'DP / CICILAN':'BELUM BAYAR';
+  const namaTokoDisplay = r.namaToko || 'WELLMATES';
+  const jenisUsahaDisplay = r.jenisUsaha || 'STUDIO.///SCREEN PRINTING';
 
-  const tokoInfo = [r.jenisUsaha,r.nomorHP,r.alamat,r.email].filter(Boolean).join(' &nbsp;·&nbsp; ');
+  // Watermark SVG (logo text sebagai watermark)
+  const watermarkSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-25deg);width:480px;opacity:0.04;pointer-events:none;z-index:0;">
+    <text x="150" y="110" font-family="Arial Black,sans-serif" font-size="52" font-weight="900" text-anchor="middle" fill="#000">${namaTokoDisplay}</text>
+    <text x="150" y="160" font-family="Arial,sans-serif" font-size="20" text-anchor="middle" fill="#000">${jenisUsahaDisplay}</text>
+  </svg>`;
 
   return `<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Invoice ${r.noOrder} — ${r.namaToko||'WELLMATES'}</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Invoice ${r.noOrder} — ${namaTokoDisplay}</title>
 <style>
-  @page { size: A4; margin: 14mm 16mm; }
+  @page { size: A4; margin: 15mm 18mm; }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Syne',sans-serif; font-size:13px; color:#111; background:white; }
+  body { font-family: Arial, sans-serif; font-size:12px; color:#000; background:white; }
 
-  /* HEADER */
-  .inv-header {
+  /* ===== HEADER ===== */
+  .inv-head {
     display:flex; justify-content:space-between; align-items:flex-start;
-    border-bottom:3px solid #111; padding-bottom:14px; margin-bottom:20px;
+    margin-bottom:6px;
   }
-  .inv-toko-nama { font-size:28px; font-weight:900; letter-spacing:-0.5px; line-height:1.1; }
-  .inv-toko-sub  { font-size:11.5px; color:#666; margin-top:5px; line-height:1.7; }
-  .inv-label-box { text-align:right; }
-  .inv-word { font-size:40px; font-weight:900; letter-spacing:5px; line-height:1; }
-  .inv-no   { font-size:14px; font-family:'DM Mono',monospace; color:#555; margin-top:5px; }
-  .inv-tgl  { font-size:11px; font-family:'DM Mono',monospace; color:#888; margin-top:2px; }
+  .inv-logo-area {}
+  .inv-logo-name {
+    font-size:32px; font-weight:900; letter-spacing:2px; line-height:1;
+    font-family:'Arial Black',sans-serif;
+  }
+  .inv-logo-sub {
+    font-size:10px; letter-spacing:3px; font-weight:700; color:#333;
+    margin-top:1px; margin-left:2px;
+  }
+  .inv-toko-addr {
+    font-size:11px; color:#000; margin-top:8px; line-height:1.7; font-weight:700;
+  }
+  .inv-right-block { text-align:right; min-width:200px; }
+  .inv-city-date {
+    font-size:12px; font-weight:700; margin-bottom:4px;
+    display:flex; justify-content:flex-end; gap:30px;
+  }
+  .inv-customer-name {
+    font-size:28px; font-weight:900; letter-spacing:1px;
+    border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:4px;
+    font-family:'Arial Black',sans-serif;
+  }
+  .inv-title-line {
+    text-align:center; font-size:28px; font-weight:900; letter-spacing:6px;
+    margin: 10px 0 6px 0; font-family:'Arial Black',sans-serif;
+  }
+  .inv-no-line { font-size:11px; font-weight:700; margin-bottom:6px; }
 
-  /* DUA KOLOM */
-  .inv-two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
-  .inv-section-title {
-    font-size:9.5px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase;
-    color:#999; border-bottom:1.5px solid #e0e0e0; padding-bottom:5px; margin-bottom:10px;
+  /* ===== TABEL UTAMA ===== */
+  .inv-table {
+    width:100%; border-collapse:collapse; font-size:12px;
   }
-  .inv-row {
-    display:flex; justify-content:space-between; align-items:baseline;
-    font-size:12px; padding:5px 0; border-bottom:1px dashed #ebebeb;
-  }
-  .inv-row:last-child { border-bottom:none; }
-  .inv-row .key { color:#666; font-weight:600; }
-  .inv-row .val { font-family:'DM Mono',monospace; font-weight:700; text-align:right; }
-  .inv-status {
-    display:inline-block; padding:2px 10px; border-radius:20px;
-    font-weight:800; font-size:10px; letter-spacing:1px; text-transform:uppercase;
-    background:${statusColor.split(';')[0]};color:${statusColor.split(';')[1].replace('color:','')};
-  }
-
-  /* TABEL RINCIAN */
-  .inv-table { width:100%; border-collapse:collapse; margin-bottom:0; font-size:12.5px; }
-  .inv-table thead tr { background:#111; color:white; }
   .inv-table th {
-    padding:9px 12px; text-align:left;
-    font-size:9px; letter-spacing:1.5px; text-transform:uppercase; font-weight:700;
+    background:#fff; border:1.5px solid #000;
+    padding:7px 10px; text-align:center; font-weight:700; font-size:12px;
   }
-  .inv-table th:last-child { text-align:right; }
-  .inv-table td { padding:9px 12px; border-bottom:1px solid #f0f0f0; font-family:'DM Mono',monospace; }
-  .inv-table td:last-child { text-align:right; font-weight:700; }
-  .inv-table tbody tr:last-child td { border-bottom:none; }
-  .inv-table tfoot tr { border-top:2px solid #111; }
-  .inv-table tfoot td { padding:10px 12px; font-weight:900; font-size:14px; border-bottom:none; }
-  .inv-table tfoot td:first-child { font-family:'Syne',sans-serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:#666; vertical-align:middle; }
-  .inv-table tfoot td:last-child { text-align:right; font-family:'DM Mono',monospace; font-size:18px; }
-
-  /* KOTAK BAWAH */
-  .inv-bottom { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; }
-  .inv-catatan {
-    font-size:11px; color:#555; border:1px dashed #ccc;
-    padding:12px 14px; line-height:1.7; border-radius:4px;
+  .inv-table td {
+    border:1.5px solid #000; padding:8px 10px; vertical-align:top;
   }
-  .inv-catatan-title { font-size:9px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#999; margin-bottom:6px; }
-  .inv-total-box { background:#111; color:white; padding:18px 20px; border-radius:6px; }
-  .inv-total-box .tl { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#aaa; margin-bottom:6px; }
-  .inv-total-box .tv { font-size:26px; font-weight:900; font-family:'DM Mono',monospace; }
-  .inv-total-box .divider { border-top:1px solid #444; margin:10px 0; }
-  .inv-total-box .ts { font-size:11px; color:#bbb; font-family:'DM Mono',monospace; margin-top:4px; display:flex; justify-content:space-between; }
-  .inv-total-box .ts span { color:white; font-weight:700; }
+  .inv-table td.center { text-align:center; vertical-align:middle; }
+  .inv-table td.right  { text-align:right;  vertical-align:middle; }
+  .inv-table tfoot td {
+    border:1.5px solid #000; padding:7px 10px;
+    font-weight:900; font-size:13px;
+  }
+  .inv-table tfoot .lbl { text-align:center; }
+  .inv-table tfoot .total-val { text-align:right; font-style:italic; }
 
-  /* FOOTER */
-  .inv-footer {
-    margin-top:32px; border-top:1px solid #eee; padding-top:12px;
-    font-size:10px; color:#bbb; text-align:center; line-height:1.6;
+  /* ===== BAWAH ===== */
+  .inv-bottom {
+    display:flex; justify-content:space-between; align-items:flex-start;
+    margin-top:16px; gap:20px;
+  }
+  .inv-payment-info { font-size:11.5px; line-height:2; flex:1; }
+  .inv-payment-info p { margin-bottom:4px; }
+  .inv-payment-info strong { font-size:12px; }
+
+  .inv-ttd { text-align:right; min-width:180px; }
+  .inv-ttd .hormat { font-size:11px; font-weight:700; margin-bottom:60px; }
+  .inv-ttd .ttd-name {
+    font-size:13px; font-weight:900; border-top:2px solid #000;
+    padding-top:5px; display:inline-block; min-width:160px; text-align:center;
+    font-family:'Arial Black',sans-serif;
+  }
+
+  /* Status badge */
+  .inv-status-row {
+    text-align:center; margin: 8px 0 4px 0;
+    font-size:11px; font-weight:700; letter-spacing:1px;
+  }
+  .s-badge {
+    display:inline-block; padding:3px 16px; border:1.5px solid #000;
+    font-weight:900; font-size:11px; letter-spacing:2px;
   }
 </style>
 </head>
 <body>
-  <div class="inv-header">
-    <div>
-      <div class="inv-toko-nama">${r.namaToko||'WELLMATES'}</div>
-      <div class="inv-toko-sub">${tokoInfo}</div>
-    </div>
-    <div class="inv-label-box">
-      <div class="inv-word">INVOICE</div>
-      <div class="inv-no">${r.noOrder}</div>
-      <div class="inv-tgl">${r.waktu}</div>
+${watermarkSVG}
+
+<!-- HEADER -->
+<div class="inv-head">
+  <div class="inv-logo-area">
+    <div class="inv-logo-name">${namaTokoDisplay}</div>
+    <div class="inv-logo-sub">${jenisUsahaDisplay}</div>
+    <div class="inv-toko-addr">
+      ${r.alamat ? r.alamat.replace(/\n/g,'<br>') : ''}
+      ${r.nomorHP ? `<br>${r.nomorHP}` : ''}
+      ${r.email ? `<br>${r.email}` : ''}
     </div>
   </div>
-
-  <div class="inv-two-col">
-    <div>
-      <div class="inv-section-title">Info Order</div>
-      <div class="inv-row"><span class="key">Customer</span><span class="val">${r.customer||'-'}</span></div>
-      <div class="inv-row"><span class="key">Project</span><span class="val">${r.project||'-'}</span></div>
-      ${r.produkLabel?`<div class="inv-row"><span class="key">Produk</span><span class="val">${r.produkLabel}</span></div>`:''}
-      <div class="inv-row"><span class="key">Tanggal Order</span><span class="val">${r.waktu}</span></div>
-      <div class="inv-row"><span class="key">Deadline</span><span class="val">${formatDate(r.deadline)}</span></div>
-      <div class="inv-row"><span class="key">Total Qty</span><span class="val">${r.totalQty} pcs</span></div>
-      <div class="inv-row"><span class="key">Status</span><span class="val"><span class="inv-status">${statusTxt}</span></span></div>
+  <div class="inv-right-block">
+    <div class="inv-city-date">
+      <span>${r.kotaToko || 'Tangerang'} :</span>
+      <span>${r.waktu}</span>
     </div>
-    <div>
-      <div class="inv-section-title">Riwayat Pembayaran</div>
-      ${payRows}
-      <div class="inv-row" style="margin-top:8px;border-top:1.5px solid #ddd;padding-top:8px;border-bottom:none">
-        <span class="key" style="font-weight:800;color:#111">Total Dibayar</span>
-        <span class="val" style="color:#155724">${rp(totalBayar)}</span>
-      </div>
-      <div class="inv-row" style="border-bottom:none">
-        <span class="key" style="font-weight:800;color:#111">Sisa Tagihan</span>
-        <span class="val" style="color:${sisa>0?'#721c24':'#155724'}">${sisa>0?rp(sisa):'Lunas ✅'}</span>
-      </div>
-    </div>
+    <div class="inv-customer-name">${r.customer || '-'}</div>
   </div>
+</div>
 
-  <div class="inv-section-title">Rincian Order</div>
-  <table class="inv-table">
-    <thead><tr><th>Item</th><th>Qty</th><th>Harga Satuan</th><th>Subtotal</th></tr></thead>
-    <tbody>${tableRows}</tbody>
-    <tfoot><tr><td>Total Tagihan</td><td></td><td></td><td>${rp(r.totalTagihan)}</td></tr></tfoot>
-  </table>
+<!-- JUDUL INVOICE -->
+<div class="inv-title-line">INVOICE</div>
+<div class="inv-no-line">NO. INVOICE : &nbsp;&nbsp;${r.noOrder}${r.project ? `&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;${r.project}` : ''}</div>
 
-  <div class="inv-bottom">
-    <div>
-      ${r.catatan?`<div class="inv-catatan-title">Catatan</div><div class="inv-catatan">${r.catatan}</div>`:''}
-    </div>
-    <div class="inv-total-box">
-      <div class="tl">Total Tagihan</div>
-      <div class="tv">${rp(r.totalTagihan)}</div>
-      <div class="divider"></div>
-      <div class="ts">Dibayar <span>${rp(totalBayar)}</span></div>
-      <div class="ts">Sisa <span>${sisa>0?rp(sisa):'Lunas ✅'}</span></div>
-    </div>
+<!-- TABEL ITEM -->
+<table class="inv-table">
+  <thead>
+    <tr>
+      <th style="width:36px">No</th>
+      <th>Nama Barang</th>
+      <th style="width:70px">Jumlah</th>
+      <th style="width:110px">Harga</th>
+      <th style="width:110px">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${tableRows}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2" class="lbl" style="font-weight:700;font-size:12px">
+        Deadline : ${formatDate(r.deadline)}
+      </td>
+      <td class="center lbl">${r.totalQty}</td>
+      <td class="center lbl" style="font-weight:900">Total</td>
+      <td class="total-val">${rp(r.totalTagihan)}</td>
+    </tr>
+  </tfoot>
+</table>
+
+<!-- STATUS -->
+<div class="inv-status-row">
+  Status Pembayaran : &nbsp;<span class="s-badge">${statusTxt}</span>
+  ${sisa > 0 ? `&nbsp;&nbsp; Sisa : <strong>${rp(sisa)}</strong>` : ''}
+</div>
+
+<!-- BAWAH -->
+<div class="inv-bottom">
+  <div class="inv-payment-info">
+    <p>Pembayaran Invoice ini bisa dilakukan secara tunai<br>atau transfer melalui Rekening dibawah ini.</p>
+    ${r.namaBank ? `<br><strong>Bank ${r.namaBank}</strong>` : ''}
+    ${r.noRek    ? `<br><strong>No. Rek : ${r.noRek}</strong>` : ''}
+    ${r.atasNama ? `<br><strong>Atas Nama : ${r.atasNama}</strong>` : ''}
+    ${paymentInfo ? `<br><br><strong>Riwayat Bayar:</strong><br>
+      <table style="font-size:11px;border-collapse:collapse">
+        ${paymentInfo}
+      </table>` : ''}
   </div>
-
-  <div class="inv-footer">
-    Terima kasih telah mempercayakan pesanan Anda kepada <strong>${r.namaToko||'kami'}</strong>.
-    ${r.nomorHP?`Hubungi kami di <strong>${r.nomorHP}</strong> untuk pertanyaan lebih lanjut.`:''}
+  <div class="inv-ttd">
+    <div class="hormat">Hormat Kami :</div>
+    <div class="ttd-name">${r.atasNama || namaTokoDisplay}</div>
   </div>
+</div>
 
-  <script>window.onload=function(){window.print();}<\/script>
+<script>window.onload=function(){window.print();}<\/script>
 </body>
 </html>`;
 }
