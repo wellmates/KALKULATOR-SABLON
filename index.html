@@ -314,17 +314,6 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
     <textarea id="inputAlamat" placeholder="cth: Jl. Merdeka No. 10, Jakarta" oninput="autoSaveToko()" style="min-height:50px"></textarea>
     <label>Email</label>
     <input type="text" id="inputEmail" placeholder="cth: toko@email.com" oninput="autoSaveToko()">
-    <label>Kota (untuk invoice)</label>
-    <input type="text" id="inputKotaToko" placeholder="cth: Tangerang" oninput="autoSaveToko()">
-    <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
-      <div style="font-size:10px;font-weight:700;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">💳 Info Rekening Bank</div>
-      <label>Nama Bank</label>
-      <input type="text" id="inputNamaBank" placeholder="cth: BCA" oninput="autoSaveToko()">
-      <label>Nomor Rekening</label>
-      <input type="text" id="inputNoRek" placeholder="cth: 5940533092" oninput="autoSaveToko()">
-      <label>Atas Nama</label>
-      <input type="text" id="inputAtasNama" placeholder="cth: Muhammad Haris" oninput="autoSaveToko()">
-    </div>
     <div style="margin-top:16px">
       <button class="btn-main" onclick="simpanToko()">💾 Simpan</button>
     </div>
@@ -458,34 +447,28 @@ function updateProdukLabel(){
 
 // ===== TOKO (permanen) =====
 let tokoData = JSON.parse(localStorage.getItem('sablonToko') || '{"nama":"","hp":"","jenisUsaha":"","alamat":"","email":""}');
+// Pastikan field baru ada untuk data lama
 if (!tokoData.jenisUsaha) tokoData.jenisUsaha = '';
 if (!tokoData.alamat)     tokoData.alamat     = '';
 if (!tokoData.email)      tokoData.email      = '';
-if (!tokoData.kotaToko)   tokoData.kotaToko   = '';
-if (!tokoData.namaBank)   tokoData.namaBank   = '';
-if (!tokoData.noRek)      tokoData.noRek      = '';
-if (!tokoData.atasNama)   tokoData.atasNama   = '';
 
-function collectTokoFields(){
-  tokoData.nama      = document.getElementById('inputNamaToko').value.trim();
-  tokoData.jenisUsaha= document.getElementById('inputJenisUsaha').value.trim();
-  tokoData.hp        = document.getElementById('inputNomorHP').value.trim();
-  tokoData.alamat    = document.getElementById('inputAlamat').value.trim();
-  tokoData.email     = document.getElementById('inputEmail').value.trim();
-  tokoData.kotaToko  = document.getElementById('inputKotaToko').value.trim();
-  tokoData.namaBank  = document.getElementById('inputNamaBank').value.trim();
-  tokoData.noRek     = document.getElementById('inputNoRek').value.trim();
-  tokoData.atasNama  = document.getElementById('inputAtasNama').value.trim();
-}
 function simpanToko(){
-  collectTokoFields();
+  tokoData.nama        = document.getElementById('inputNamaToko').value.trim();
+  tokoData.jenisUsaha  = document.getElementById('inputJenisUsaha').value.trim();
+  tokoData.hp          = document.getElementById('inputNomorHP').value.trim();
+  tokoData.alamat      = document.getElementById('inputAlamat').value.trim();
+  tokoData.email       = document.getElementById('inputEmail').value.trim();
   localStorage.setItem('sablonToko', JSON.stringify(tokoData));
   updateHeaderToko();
   tutupModalToko();
   showToast('✅ Info toko disimpan!');
 }
 function autoSaveToko(){
-  collectTokoFields();
+  tokoData.nama        = document.getElementById('inputNamaToko').value.trim();
+  tokoData.jenisUsaha  = document.getElementById('inputJenisUsaha').value.trim();
+  tokoData.hp          = document.getElementById('inputNomorHP').value.trim();
+  tokoData.alamat      = document.getElementById('inputAlamat').value.trim();
+  tokoData.email       = document.getElementById('inputEmail').value.trim();
   localStorage.setItem('sablonToko', JSON.stringify(tokoData));
   updateHeaderToko();
 }
@@ -499,10 +482,6 @@ function bukaModalToko(){
   document.getElementById('inputNomorHP').value    = tokoData.hp;
   document.getElementById('inputAlamat').value     = tokoData.alamat || '';
   document.getElementById('inputEmail').value      = tokoData.email || '';
-  document.getElementById('inputKotaToko').value   = tokoData.kotaToko || '';
-  document.getElementById('inputNamaBank').value   = tokoData.namaBank || '';
-  document.getElementById('inputNoRek').value      = tokoData.noRek || '';
-  document.getElementById('inputAtasNama').value   = tokoData.atasNama || '';
   document.getElementById('modalToko').classList.add('show');
 }
 function tutupModalToko(){
@@ -740,7 +719,6 @@ function hitung(){
   const order={
     noOrder:noOrder(), namaToko:tokoData.nama, nomorHP:tokoData.hp,
     jenisUsaha:tokoData.jenisUsaha, alamat:tokoData.alamat, email:tokoData.email,
-    kotaToko:tokoData.kotaToko, namaBank:tokoData.namaBank, noRek:tokoData.noRek, atasNama:tokoData.atasNama,
     customer, project, deadline, catatan,
     produk: selectedProduk, cutting: selectedCutting,
     produkLabel: cfg.punya_cutting
@@ -973,198 +951,180 @@ function buildA4HTML(r){
   const sisa = getSisa(r);
   const kolomNama = r.kolomNama || ['Lengan Pendek','Lengan Panjang','Pjg+Rib'];
 
-  // ---- TABLE ROWS: setiap size x tipe = 1 baris ----
   let tableRows = '';
-  let noItem = 1;
-
-  r.sizeDetail.forEach(d => {
-    const qtyArr   = d.qtyArr   || [d.p, d.j, d.r];
-    const hJualArr = d.hJualArr || [d.hJualP, d.hJualJ, d.hJualR];
-    kolomNama.forEach((kol, i) => {
-      const q = qtyArr[i] || 0;
-      const h = hJualArr[i] || 0;
-      if (q <= 0) return;
-      // Label tipe
-      let tipeLabel = kol;
-      // Nama barang: produkLabel + ukuran + tipe
-      const namaItem = `${r.produkLabel || 'Sablon'} — ${d.s} ${tipeLabel}`;
-      tableRows += `<tr>
-        <td class="center">${noItem++}</td>
-        <td>${namaItem}${r.project ? `<br><span style="font-size:10.5px;color:#555">${r.project}</span>` : ''}</td>
-        <td class="center">${q} pcs</td>
-        <td class="right">${rp(h)}</td>
-        <td class="right">${rp(h * q)}</td>
-      </tr>`;
+  r.sizeDetail.forEach(d=>{
+    const qtyArr   = d.qtyArr   || [d.p,d.j,d.r];
+    const hJualArr = d.hJualArr || [d.hJualP,d.hJualJ,d.hJualR];
+    kolomNama.forEach((kol,i)=>{
+      const q=qtyArr[i]||0; const h=hJualArr[i]||0;
+      if(q>0) tableRows+=`<tr><td>${d.s} ${kol}</td><td>${q} pcs</td><td>${rp(h)}/pcs</td><td>${rp(h*q)}</td></tr>`;
     });
   });
+  if(r.biayaLabel>0) tableRows+=`<tr><td colspan="3">Label</td><td>${rp(r.biayaLabel)}</td></tr>`;
+  if(r.hangtag>0)    tableRows+=`<tr><td colspan="3">Hangtag</td><td>${rp(r.hangtag)}</td></tr>`;
+  if(r.packing>0)    tableRows+=`<tr><td colspan="3">Packing</td><td>${rp(r.packing)}</td></tr>`;
+  if(r.ongkir>0)     tableRows+=`<tr><td colspan="3">Ongkir</td><td>${rp(r.ongkir)}</td></tr>`;
+  if(r.lain>0)       tableRows+=`<tr><td colspan="3">Lain-lain</td><td>${rp(r.lain)}</td></tr>`;
 
-  // Catatan row (kalau ada)
-  if (r.catatan) {
-    tableRows += `<tr><td colspan="5" style="font-size:10.5px;color:#555;font-style:italic;padding:5px 10px;border:1.5px solid #000">📝 ${r.catatan}</td></tr>`;
-  }
-
-  // Biaya tambahan
-  if(r.biayaLabel>0) tableRows+=`<tr><td class="center">${noItem++}</td><td>Label</td><td class="center">-</td><td class="right">-</td><td class="right">${rp(r.biayaLabel)}</td></tr>`;
-  if(r.hangtag>0)    tableRows+=`<tr><td class="center">${noItem++}</td><td>Hangtag</td><td class="center">-</td><td class="right">-</td><td class="right">${rp(r.hangtag)}</td></tr>`;
-  if(r.packing>0)    tableRows+=`<tr><td class="center">${noItem++}</td><td>Packing</td><td class="center">-</td><td class="right">-</td><td class="right">${rp(r.packing)}</td></tr>`;
-  if(r.ongkir>0)     tableRows+=`<tr><td class="center">${noItem++}</td><td>Ongkir</td><td class="center">-</td><td class="right">-</td><td class="right">${rp(r.ongkir)}</td></tr>`;
-  if(r.lain>0)       tableRows+=`<tr><td class="center">${noItem++}</td><td>Lain-lain</td><td class="center">-</td><td class="right">-</td><td class="right">${rp(r.lain)}</td></tr>`;
-
-  // Payment history
-  let paymentInfo = '';
-  (r.payments||[]).forEach(p => {
-    paymentInfo += `<tr><td>${p.waktu}</td><td style="text-align:right">${rp(p.jumlah)}</td></tr>`;
+  let payRows = '';
+  (r.payments||[]).forEach(p=>{
+    payRows+=`<div class="inv-row"><span class="key">${p.waktu}</span><span class="val">${rp(p.jumlah)}</span></div>`;
   });
+  if(!payRows) payRows=`<div class="inv-row"><span class="key" style="color:#aaa">Belum ada pembayaran</span><span class="val">—</span></div>`;
 
-  const statusTxt = st==='lunas'?'LUNAS':st==='dp'?'DP / CICILAN':'BELUM BAYAR';
-  const namaTokoDisplay    = r.namaToko    || 'WELLMATES';
-  const jenisUsahaDisplay  = r.jenisUsaha  || 'STUDIO.///SCREEN PRINTING';
-  const LOGO_B64 =  + logo_b64 + ;
+  const statusCls = st==='lunas'?'lunas':st==='dp'?'dp':'belum';
+  const statusTxt = st==='lunas'?'LUNAS':st==='dp'?'DP':'BELUM BAYAR';
+  const statusColor = st==='lunas'?'#d4edda;color:#155724':st==='dp'?'#fff3cd;color:#856404':'#f8d7da;color:#721c24';
+
+  const tokoInfo = [r.jenisUsaha,r.nomorHP,r.alamat,r.email].filter(Boolean).join(' &nbsp;·&nbsp; ');
 
   return `<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Invoice ${r.noOrder} — ${namaTokoDisplay}</title>
+<title>Invoice ${r.noOrder} — ${r.namaToko||'WELLMATES'}</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  @page { size: A4; margin: 15mm 18mm; }
+  @page { size: A4; margin: 14mm 16mm; }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family: Arial, sans-serif; font-size:12px; color:#000; background:white; position:relative; }
-
-  /* WATERMARK */
-  .wm {
-    position:fixed; top:50%; left:50%;
-    transform:translate(-50%,-50%) rotate(-20deg);
-    width:52%; opacity:0.055; pointer-events:none; z-index:0;
-  }
+  body { font-family:'Syne',sans-serif; font-size:13px; color:#111; background:white; }
 
   /* HEADER */
-  .inv-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
-  .inv-logo-name { font-size:30px; font-weight:900; letter-spacing:2px; font-family:'Arial Black',sans-serif; line-height:1; }
-  .inv-logo-sub  { font-size:10px; letter-spacing:3px; font-weight:700; color:#333; margin-top:2px; }
-  .inv-toko-addr { font-size:11px; margin-top:8px; line-height:1.75; font-weight:700; }
-  .inv-right-block { text-align:right; min-width:210px; }
-  .inv-city-date { font-size:12px; font-weight:700; display:flex; justify-content:flex-end; gap:28px; margin-bottom:5px; }
-  .inv-customer-name {
-    font-size:26px; font-weight:900; font-family:'Arial Black',sans-serif;
-    border-bottom:2px solid #000; padding-bottom:3px; display:inline-block;
+  .inv-header {
+    display:flex; justify-content:space-between; align-items:flex-start;
+    border-bottom:3px solid #111; padding-bottom:14px; margin-bottom:20px;
+  }
+  .inv-toko-nama { font-size:28px; font-weight:900; letter-spacing:-0.5px; line-height:1.1; }
+  .inv-toko-sub  { font-size:11.5px; color:#666; margin-top:5px; line-height:1.7; }
+  .inv-label-box { text-align:right; }
+  .inv-word { font-size:40px; font-weight:900; letter-spacing:5px; line-height:1; }
+  .inv-no   { font-size:14px; font-family:'DM Mono',monospace; color:#555; margin-top:5px; }
+  .inv-tgl  { font-size:11px; font-family:'DM Mono',monospace; color:#888; margin-top:2px; }
+
+  /* DUA KOLOM */
+  .inv-two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
+  .inv-section-title {
+    font-size:9.5px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase;
+    color:#999; border-bottom:1.5px solid #e0e0e0; padding-bottom:5px; margin-bottom:10px;
+  }
+  .inv-row {
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:12px; padding:5px 0; border-bottom:1px dashed #ebebeb;
+  }
+  .inv-row:last-child { border-bottom:none; }
+  .inv-row .key { color:#666; font-weight:600; }
+  .inv-row .val { font-family:'DM Mono',monospace; font-weight:700; text-align:right; }
+  .inv-status {
+    display:inline-block; padding:2px 10px; border-radius:20px;
+    font-weight:800; font-size:10px; letter-spacing:1px; text-transform:uppercase;
+    background:${statusColor.split(';')[0]};color:${statusColor.split(';')[1].replace('color:','')};
   }
 
-  /* JUDUL */
-  .inv-title { text-align:center; font-size:28px; font-weight:900; letter-spacing:6px; margin:10px 0 5px; font-family:'Arial Black',sans-serif; }
-  .inv-no-line { font-size:11px; font-weight:700; margin-bottom:7px; }
-
-  /* TABEL */
-  .inv-table { width:100%; border-collapse:collapse; font-size:11.5px; }
+  /* TABEL RINCIAN */
+  .inv-table { width:100%; border-collapse:collapse; margin-bottom:0; font-size:12.5px; }
+  .inv-table thead tr { background:#111; color:white; }
   .inv-table th {
-    background:#fff; border:1.5px solid #000;
-    padding:6px 8px; text-align:center; font-weight:700; font-size:11.5px;
+    padding:9px 12px; text-align:left;
+    font-size:9px; letter-spacing:1.5px; text-transform:uppercase; font-weight:700;
   }
-  .inv-table td { border:1.5px solid #000; padding:6px 8px; vertical-align:middle; }
-  .inv-table td.center { text-align:center; }
-  .inv-table td.right  { text-align:right; }
-  .inv-table tfoot td {
-    border:1.5px solid #000; padding:6px 8px; font-weight:900; font-size:12px;
-    background:#fff;
+  .inv-table th:last-child { text-align:right; }
+  .inv-table td { padding:9px 12px; border-bottom:1px solid #f0f0f0; font-family:'DM Mono',monospace; }
+  .inv-table td:last-child { text-align:right; font-weight:700; }
+  .inv-table tbody tr:last-child td { border-bottom:none; }
+  .inv-table tfoot tr { border-top:2px solid #111; }
+  .inv-table tfoot td { padding:10px 12px; font-weight:900; font-size:14px; border-bottom:none; }
+  .inv-table tfoot td:first-child { font-family:'Syne',sans-serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:#666; vertical-align:middle; }
+  .inv-table tfoot td:last-child { text-align:right; font-family:'DM Mono',monospace; font-size:18px; }
+
+  /* KOTAK BAWAH */
+  .inv-bottom { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; }
+  .inv-catatan {
+    font-size:11px; color:#555; border:1px dashed #ccc;
+    padding:12px 14px; line-height:1.7; border-radius:4px;
   }
-  .inv-table tfoot .total-val { text-align:right; font-style:italic; font-size:13px; }
+  .inv-catatan-title { font-size:9px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#999; margin-bottom:6px; }
+  .inv-total-box { background:#111; color:white; padding:18px 20px; border-radius:6px; }
+  .inv-total-box .tl { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#aaa; margin-bottom:6px; }
+  .inv-total-box .tv { font-size:26px; font-weight:900; font-family:'DM Mono',monospace; }
+  .inv-total-box .divider { border-top:1px solid #444; margin:10px 0; }
+  .inv-total-box .ts { font-size:11px; color:#bbb; font-family:'DM Mono',monospace; margin-top:4px; display:flex; justify-content:space-between; }
+  .inv-total-box .ts span { color:white; font-weight:700; }
 
-  /* BAWAH */
-  .inv-bottom { display:flex; justify-content:space-between; align-items:flex-start; margin-top:14px; gap:20px; }
-  .inv-payment-info { font-size:11.5px; line-height:1.9; flex:1; }
-  .inv-payment-info strong { font-size:12px; }
-  .pay-hist-table { font-size:11px; border-collapse:collapse; margin-top:4px; }
-  .pay-hist-table td { padding:2px 8px; border-bottom:1px dashed #ccc; }
-
-  .inv-ttd { text-align:right; min-width:180px; }
-  .inv-ttd .hormat { font-size:11px; font-weight:700; margin-bottom:58px; }
-  .inv-ttd .ttd-name {
-    font-size:12px; font-weight:900; border-top:2px solid #000;
-    padding-top:5px; display:inline-block; min-width:160px; text-align:center;
+  /* FOOTER */
+  .inv-footer {
+    margin-top:32px; border-top:1px solid #eee; padding-top:12px;
+    font-size:10px; color:#bbb; text-align:center; line-height:1.6;
   }
-
-  .inv-status-row { text-align:center; margin:8px 0 4px; font-size:11px; font-weight:700; }
-  .s-badge { display:inline-block; padding:3px 16px; border:1.5px solid #000; font-weight:900; font-size:11px; letter-spacing:2px; }
 </style>
 </head>
 <body>
-
-<!-- WATERMARK LOGO -->
-<img class="wm" src="data:image/png;base64,${LOGO_B64}" alt="">
-
-<!-- HEADER -->
-<div class="inv-head">
-  <div>
-    <div class="inv-logo-name">${namaTokoDisplay}</div>
-    <div class="inv-logo-sub">${jenisUsahaDisplay}</div>
-    <div class="inv-toko-addr">
-      ${r.alamat ? r.alamat.replace(/\n/g,'<br>') : ''}
-      ${r.nomorHP ? `<br>${r.nomorHP}` : ''}
-      ${r.email ? `<br>${r.email}` : ''}
+  <div class="inv-header">
+    <div>
+      <div class="inv-toko-nama">${r.namaToko||'WELLMATES'}</div>
+      <div class="inv-toko-sub">${tokoInfo}</div>
+    </div>
+    <div class="inv-label-box">
+      <div class="inv-word">INVOICE</div>
+      <div class="inv-no">${r.noOrder}</div>
+      <div class="inv-tgl">${r.waktu}</div>
     </div>
   </div>
-  <div class="inv-right-block">
-    <div class="inv-city-date">
-      <span>${r.kotaToko || 'Tangerang'} :</span>
-      <span>${r.waktu}</span>
+
+  <div class="inv-two-col">
+    <div>
+      <div class="inv-section-title">Info Order</div>
+      <div class="inv-row"><span class="key">Customer</span><span class="val">${r.customer||'-'}</span></div>
+      <div class="inv-row"><span class="key">Project</span><span class="val">${r.project||'-'}</span></div>
+      ${r.produkLabel?`<div class="inv-row"><span class="key">Produk</span><span class="val">${r.produkLabel}</span></div>`:''}
+      <div class="inv-row"><span class="key">Tanggal Order</span><span class="val">${r.waktu}</span></div>
+      <div class="inv-row"><span class="key">Deadline</span><span class="val">${formatDate(r.deadline)}</span></div>
+      <div class="inv-row"><span class="key">Total Qty</span><span class="val">${r.totalQty} pcs</span></div>
+      <div class="inv-row"><span class="key">Status</span><span class="val"><span class="inv-status">${statusTxt}</span></span></div>
     </div>
-    <div class="inv-customer-name">${r.customer || '-'}</div>
+    <div>
+      <div class="inv-section-title">Riwayat Pembayaran</div>
+      ${payRows}
+      <div class="inv-row" style="margin-top:8px;border-top:1.5px solid #ddd;padding-top:8px;border-bottom:none">
+        <span class="key" style="font-weight:800;color:#111">Total Dibayar</span>
+        <span class="val" style="color:#155724">${rp(totalBayar)}</span>
+      </div>
+      <div class="inv-row" style="border-bottom:none">
+        <span class="key" style="font-weight:800;color:#111">Sisa Tagihan</span>
+        <span class="val" style="color:${sisa>0?'#721c24':'#155724'}">${sisa>0?rp(sisa):'Lunas ✅'}</span>
+      </div>
+    </div>
   </div>
-</div>
 
-<!-- JUDUL -->
-<div class="inv-title">INVOICE</div>
-<div class="inv-no-line">NO. INVOICE :&nbsp;&nbsp;${r.noOrder}${r.project ? `&nbsp;&nbsp;|&nbsp;&nbsp;${r.project}` : ''}</div>
+  <div class="inv-section-title">Rincian Order</div>
+  <table class="inv-table">
+    <thead><tr><th>Item</th><th>Qty</th><th>Harga Satuan</th><th>Subtotal</th></tr></thead>
+    <tbody>${tableRows}</tbody>
+    <tfoot><tr><td>Total Tagihan</td><td></td><td></td><td>${rp(r.totalTagihan)}</td></tr></tfoot>
+  </table>
 
-<!-- TABEL -->
-<table class="inv-table">
-  <thead>
-    <tr>
-      <th style="width:34px">No</th>
-      <th style="text-align:left">Nama Barang</th>
-      <th style="width:72px">Jumlah</th>
-      <th style="width:108px">Harga Satuan</th>
-      <th style="width:108px">Total</th>
-    </tr>
-  </thead>
-  <tbody>${tableRows}</tbody>
-  <tfoot>
-    <tr>
-      <td colspan="2" style="font-size:11px;font-weight:700">Deadline : ${formatDate(r.deadline)}</td>
-      <td class="center" style="font-weight:900">${r.totalQty} pcs</td>
-      <td class="center" style="font-weight:900">Total</td>
-      <td class="total-val">${rp(r.totalTagihan)}</td>
-    </tr>
-  </tfoot>
-</table>
-
-<!-- STATUS -->
-<div class="inv-status-row">
-  Status : <span class="s-badge">${statusTxt}</span>
-  ${sisa > 0 ? `&nbsp;&nbsp; Sisa Tagihan : <strong>${rp(sisa)}</strong>` : ''}
-</div>
-
-<!-- BAWAH -->
-<div class="inv-bottom">
-  <div class="inv-payment-info">
-    <p>Pembayaran dapat dilakukan secara tunai atau transfer.</p>
-    ${r.namaBank  ? `<br><strong>Bank ${r.namaBank}</strong>`        : ''}
-    ${r.noRek     ? `<strong>No. Rek : ${r.noRek}</strong>`          : ''}
-    ${r.atasNama  ? `<br><strong>Atas Nama : ${r.atasNama}</strong>` : ''}
-    ${paymentInfo ? `<br><br><strong>Riwayat Pembayaran :</strong>
-      <table class="pay-hist-table">${paymentInfo}</table>
-      <strong>Total Dibayar : ${rp(totalBayar)}</strong>` : ''}
+  <div class="inv-bottom">
+    <div>
+      ${r.catatan?`<div class="inv-catatan-title">Catatan</div><div class="inv-catatan">${r.catatan}</div>`:''}
+    </div>
+    <div class="inv-total-box">
+      <div class="tl">Total Tagihan</div>
+      <div class="tv">${rp(r.totalTagihan)}</div>
+      <div class="divider"></div>
+      <div class="ts">Dibayar <span>${rp(totalBayar)}</span></div>
+      <div class="ts">Sisa <span>${sisa>0?rp(sisa):'Lunas ✅'}</span></div>
+    </div>
   </div>
-  <div class="inv-ttd">
-    <div class="hormat">Hormat Kami,</div>
-    <div class="ttd-name">${r.atasNama || namaTokoDisplay}</div>
-  </div>
-</div>
 
-<script>window.onload=function(){window.print();}<\/script>
+  <div class="inv-footer">
+    Terima kasih telah mempercayakan pesanan Anda kepada <strong>${r.namaToko||'kami'}</strong>.
+    ${r.nomorHP?`Hubungi kami di <strong>${r.nomorHP}</strong> untuk pertanyaan lebih lanjut.`:''}
+  </div>
+
+  <script>window.onload=function(){window.print();}<\/script>
 </body>
-</html>\`;
+</html>`;
 }
+
 function doPrint(jenis){
   tutupModalPrint();
   if(currentIdx===null){showToast('⚠️ Belum ada hasil','#ff4757');return;}
