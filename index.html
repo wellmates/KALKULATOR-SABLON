@@ -136,8 +136,10 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
 
 /* ===== PRINT ===== */
 @media print {
-  @page{size:80mm auto;margin:2mm 3mm;}
+  @page { size:80mm auto; margin:2mm 3mm; }
+  body.print-a4 @page { size:A4; margin:15mm; }
   body{background:white!important;color:black!important;padding:0;font-family:'DM Mono',monospace;font-size:11px;width:80mm;margin:0;}
+  body.print-a4{width:100%!important;font-size:12px!important;}
   .no-print,.tabs,.btn-main,.btn-row,.header,#tab-hitung,#tab-histori,#tab-analitik,#tab-toko,.print-hide,.modal-overlay,.pay-item button,#toast{display:none!important;}
   #tab-hasil{display:block!important;}
   #hasilContainer{padding:0!important;}
@@ -307,10 +309,41 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
     <div class="modal-title">⚙️ Pengaturan Toko</div>
     <label>Nama Toko</label>
     <input type="text" id="inputNamaToko" placeholder="cth: Sablon Jaya" oninput="autoSaveToko()">
+    <label>Jenis Usaha</label>
+    <input type="text" id="inputJenisUsaha" placeholder="cth: Sablon & Konveksi" oninput="autoSaveToko()">
     <label>Nomor HP / WA</label>
     <input type="text" id="inputNomorHP" placeholder="cth: 0812-3456-7890" oninput="autoSaveToko()">
+    <label>Alamat</label>
+    <textarea id="inputAlamat" placeholder="cth: Jl. Merdeka No. 10, Jakarta" oninput="autoSaveToko()" style="min-height:50px"></textarea>
+    <label>Email</label>
+    <input type="text" id="inputEmail" placeholder="cth: toko@email.com" oninput="autoSaveToko()">
     <div style="margin-top:16px">
       <button class="btn-main" onclick="simpanToko()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL PRINT ===== -->
+<div class="modal-overlay" id="modalPrint">
+  <div class="modal-box">
+    <button class="modal-close" onclick="tutupModalPrint()">✕</button>
+    <div class="modal-title">🖨️ Pilih Jenis Kertas</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Pilih format cetak struk yang sesuai dengan printer kamu.</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="doPrint('thermal')" style="width:100%;padding:14px;background:var(--surface2);border:2px solid var(--accent);border-radius:12px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px">
+        <span style="font-size:24px">🧾</span>
+        <div>
+          <div>Thermal 80mm</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:400">Printer kasir / struk kecil</div>
+        </div>
+      </button>
+      <button onclick="doPrint('a4')" style="width:100%;padding:14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px">
+        <span style="font-size:24px">📄</span>
+        <div>
+          <div>HVS A4</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:400">Printer biasa / kertas A4</div>
+        </div>
+      </button>
     </div>
   </div>
 </div>
@@ -416,19 +449,29 @@ function updateProdukLabel(){
 }
 
 // ===== TOKO (permanen) =====
-let tokoData = JSON.parse(localStorage.getItem('sablonToko') || '{"nama":"","hp":""}');
+let tokoData = JSON.parse(localStorage.getItem('sablonToko') || '{"nama":"","hp":"","jenisUsaha":"","alamat":"","email":""}');
+// Pastikan field baru ada untuk data lama
+if (!tokoData.jenisUsaha) tokoData.jenisUsaha = '';
+if (!tokoData.alamat)     tokoData.alamat     = '';
+if (!tokoData.email)      tokoData.email      = '';
 
 function simpanToko(){
-  tokoData.nama = document.getElementById('inputNamaToko').value.trim();
-  tokoData.hp   = document.getElementById('inputNomorHP').value.trim();
+  tokoData.nama        = document.getElementById('inputNamaToko').value.trim();
+  tokoData.jenisUsaha  = document.getElementById('inputJenisUsaha').value.trim();
+  tokoData.hp          = document.getElementById('inputNomorHP').value.trim();
+  tokoData.alamat      = document.getElementById('inputAlamat').value.trim();
+  tokoData.email       = document.getElementById('inputEmail').value.trim();
   localStorage.setItem('sablonToko', JSON.stringify(tokoData));
   updateHeaderToko();
   tutupModalToko();
   showToast('✅ Info toko disimpan!');
 }
 function autoSaveToko(){
-  tokoData.nama = document.getElementById('inputNamaToko').value.trim();
-  tokoData.hp   = document.getElementById('inputNomorHP').value.trim();
+  tokoData.nama        = document.getElementById('inputNamaToko').value.trim();
+  tokoData.jenisUsaha  = document.getElementById('inputJenisUsaha').value.trim();
+  tokoData.hp          = document.getElementById('inputNomorHP').value.trim();
+  tokoData.alamat      = document.getElementById('inputAlamat').value.trim();
+  tokoData.email       = document.getElementById('inputEmail').value.trim();
   localStorage.setItem('sablonToko', JSON.stringify(tokoData));
   updateHeaderToko();
 }
@@ -437,8 +480,11 @@ function updateHeaderToko(){
   document.getElementById('headerNoHP').textContent     = tokoData.hp   || 'Kalkulator HPP Sablon';
 }
 function bukaModalToko(){
-  document.getElementById('inputNamaToko').value = tokoData.nama;
-  document.getElementById('inputNomorHP').value  = tokoData.hp;
+  document.getElementById('inputNamaToko').value   = tokoData.nama;
+  document.getElementById('inputJenisUsaha').value = tokoData.jenisUsaha || '';
+  document.getElementById('inputNomorHP').value    = tokoData.hp;
+  document.getElementById('inputAlamat').value     = tokoData.alamat || '';
+  document.getElementById('inputEmail').value      = tokoData.email || '';
   document.getElementById('modalToko').classList.add('show');
 }
 function tutupModalToko(){
@@ -675,6 +721,7 @@ function hitung(){
 
   const order={
     noOrder:noOrder(), namaToko:tokoData.nama, nomorHP:tokoData.hp,
+    jenisUsaha:tokoData.jenisUsaha, alamat:tokoData.alamat, email:tokoData.email,
     customer, project, deadline, catatan,
     produk: selectedProduk, cutting: selectedCutting,
     produkLabel: cfg.punya_cutting
@@ -739,7 +786,10 @@ function renderHasil(r){
     <!-- Print header -->
     <div class="card" style="text-align:center">
       <div style="font-size:17px;font-weight:800">${r.namaToko||'WELLMATES'}</div>
+      ${r.jenisUsaha?`<div style="font-size:11px;color:var(--muted)">${r.jenisUsaha}</div>`:''}
       ${r.nomorHP?`<div style="font-size:12px;color:var(--muted)">${r.nomorHP}</div>`:''}
+      ${r.alamat?`<div style="font-size:11px;color:var(--muted)">${r.alamat}</div>`:''}
+      ${r.email?`<div style="font-size:11px;color:var(--muted)">${r.email}</div>`:''}
     </div>
 
     <div class="card">
@@ -801,7 +851,7 @@ function renderHasil(r){
     </div>
 
     <div class="btn-row no-print">
-      <button class="btn-sec" onclick="printStruk()">🖨️ Print Struk</button>
+      <button class="btn-sec" onclick="bukaModalPrint()">🖨️ Print Struk</button>
       <button class="btn-sec" onclick="salinWA()">📋 Salin WA</button>
     </div>
   `;
@@ -814,7 +864,10 @@ function salinWA(){
   const st=getStatus(r); const sisa=getSisa(r); const tb=getTotalBayar(r);
   const kolomNama = r.kolomNama || ['Lengan Pendek','Lengan Panjang','Pjg+Rib'];
   let t=`*${r.namaToko||'WELLMATES'}*\n`;
+  if(r.jenisUsaha) t+=`${r.jenisUsaha}\n`;
   if(r.nomorHP) t+=`${r.nomorHP}\n`;
+  if(r.alamat) t+=`${r.alamat}\n`;
+  if(r.email) t+=`${r.email}\n`;
   t+=`━━━━━━━━━━━━━━━━━━━━\n`;
   t+=`No     : ${r.noOrder}\nCustomer: ${r.customer||'-'}\nProject : ${r.project||'-'}\n`;
   if(r.produkLabel) t+=`Produk  : ${r.produkLabel}\n`;
@@ -884,15 +937,31 @@ function renderAnalitik(){
 }
 
 // ===== PRINT =====
-function printStruk(){
+function bukaModalPrint(){
+  if(currentIdx===null){showToast('⚠️ Belum ada hasil','#ff4757');return;}
+  document.getElementById('modalPrint').classList.add('show');
+}
+function tutupModalPrint(){
+  document.getElementById('modalPrint').classList.remove('show');
+}
+function doPrint(jenis){
+  tutupModalPrint();
   if(currentIdx===null){showToast('⚠️ Belum ada hasil','#ff4757');return;}
   const r = histori[currentIdx];
   const nama = (r.customer||'customer').trim().replace(/\s+/g,'_');
   const noOrd = (r.noOrder||'').replace('#','');
   const oriTitle = document.title;
   document.title = `Invoice_${nama}_${noOrd}`;
-  window.print();
-  document.title = oriTitle;
+  if(jenis==='a4'){
+    document.body.classList.add('print-a4');
+  } else {
+    document.body.classList.remove('print-a4');
+  }
+  setTimeout(()=>{
+    window.print();
+    document.title = oriTitle;
+    document.body.classList.remove('print-a4');
+  }, 100);
 }
 
 // ===== BACKUP & RESTORE =====
