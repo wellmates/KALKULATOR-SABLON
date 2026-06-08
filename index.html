@@ -55,6 +55,16 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
 .hpp-cell .hc-p{font-size:11px;font-family:'DM Mono',monospace;color:var(--text);}
 .hpp-cell .hc-j{font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);}
 
+/* Product & Cutting Selector */
+.prod-selector{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.prod-btn{flex:1;min-width:70px;padding:9px 6px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center;}
+.prod-btn.active{border-color:var(--accent);background:rgba(255,107,43,.12);color:var(--accent);}
+.cut-selector{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.cut-btn{flex:1;padding:7px 4px;border:1.5px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center;}
+.cut-btn.active{border-color:var(--accent);background:rgba(255,107,43,.12);color:var(--accent);}
+.cutting-section{display:none;}
+.cutting-section.show{display:block;}
+
 /* Size table */
 .size-table{width:100%;border-collapse:collapse;}
 .size-table th{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:6px 4px;text-align:center;border-bottom:1px solid var(--border);}
@@ -138,6 +148,8 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
   .big-box .lbl{font-size:10px!important;font-weight:700!important;}
   .result-row{padding:2px 0!important;font-size:10px!important;border-bottom:1px dashed #ccc!important;}
   .result-row:last-child{border-bottom:none!important;}
+  .result-row .lbl{font-size:10px!important;line-height:1.4!important;}
+  .result-row .lbl span{font-size:9px!important;color:#555!important;}
   .status-badge{border:1px solid #000!important;color:black!important;background:white!important;padding:1px 4px!important;font-size:9px!important;}
   .card-title{font-size:9px!important;letter-spacing:1px;margin-bottom:4px!important;padding-bottom:2px;border-bottom:1px solid #000!important;}
   .pay-item{background:white!important;border:none!important;border-radius:0!important;padding:2px 0!important;margin-bottom:2px!important;font-size:10px!important;}
@@ -193,6 +205,30 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
     <textarea id="catatan" placeholder="cth: Sablon dada kiri, tinta hitam..."></textarea>
   </div>
 
+  <!-- PILIH PRODUK -->
+  <div class="card">
+    <div class="card-title">Jenis Produk</div>
+    <div class="prod-selector">
+      <button class="prod-btn active" onclick="pilihProduk('kaos',this)">Kaos</button>
+      <button class="prod-btn" onclick="pilihProduk('jaket',this)">Jaket</button>
+      <button class="prod-btn" onclick="pilihProduk('workshirt',this)">Workshirt</button>
+      <button class="prod-btn" onclick="pilihProduk('workjacket',this)">Workjacket</button>
+    </div>
+    <!-- Cutting — hanya muncul untuk Kaos -->
+    <div id="cuttingSection" class="cutting-section show">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Cutting Kaos</div>
+      <div class="cut-selector">
+        <button class="cut-btn active" onclick="pilihCutting('reguler',this)">Reguler</button>
+        <button class="cut-btn" onclick="pilihCutting('boxy',this)">Boxy</button>
+        <button class="cut-btn" onclick="pilihCutting('oversize',this)">Oversize</button>
+      </div>
+    </div>
+    <div id="produkLabel" style="font-size:11px;color:var(--accent);font-weight:700;padding:6px 10px;background:rgba(255,107,43,.08);border-radius:8px">
+      👕 Kaos — Cutting Reguler
+    </div>
+  </div>
+
+  <!-- HARGA JUAL -->
   <div class="card">
     <div class="card-title">Harga Jual (S–XL)</div>
     <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Isi harga jual untuk S–XL. Ukuran besar & lengan panjang otomatis terhitung.</p>
@@ -204,6 +240,7 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
     </div>
   </div>
 
+  <!-- HPP -->
   <div class="card">
     <div class="card-title">HPP / Modal (Tidak Tampil di Struk)</div>
     <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Isi harga modal S–XL. Ukuran besar & lengan panjang otomatis terhitung.</p>
@@ -215,10 +252,11 @@ textarea{resize:vertical;min-height:65px;font-size:13px;}
     </div>
   </div>
 
+  <!-- TABEL UKURAN — header berubah sesuai produk -->
   <div class="card">
-    <div class="card-title">Jumlah per Ukuran</div>
+    <div class="card-title" id="sizeTableTitle">Jumlah per Ukuran</div>
     <table class="size-table">
-      <thead>
+      <thead id="sizeTableHead">
         <tr>
           <th>Ukuran</th>
           <th>Pendek</th>
@@ -315,6 +353,67 @@ const SIZES = ['S','M','L','XL','XXL','3XL','4XL','5XL'];
 const SIZE_EXTRA = {S:0,M:0,L:0,XL:0,XXL:10000,'3XL':15000,'4XL':20000,'5XL':25000};
 const LENGAN_EXTRA = 10000;
 const RIB_EXTRA = 15000;
+
+// ===== PRODUK & CUTTING =====
+const PRODUK_CONFIG = {
+  kaos: {
+    label: 'Kaos',
+    punya_cutting: true,
+    kolom: ['Pendek','Panjang','Pjg+Rib'],
+    kolom_extra: [0, 10000, 15000]
+  },
+  jaket: {
+    label: 'Jaket',
+    punya_cutting: false,
+    kolom: ['Lengan Panjang'],
+    kolom_extra: [0]
+  },
+  workshirt: {
+    label: 'Workshirt',
+    punya_cutting: false,
+    kolom: ['Lengan Pendek','Lengan Panjang'],
+    kolom_extra: [0, 10000]
+  },
+  workjacket: {
+    label: 'Workjacket',
+    punya_cutting: false,
+    kolom: ['Lengan Panjang'],
+    kolom_extra: [0]
+  }
+};
+const CUTTING_LABELS = {reguler:'Reguler',boxy:'Boxy',oversize:'Oversize'};
+
+let selectedProduk  = 'kaos';
+let selectedCutting = 'reguler';
+
+function pilihProduk(p, el){
+  selectedProduk = p;
+  document.querySelectorAll('.prod-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const cfg = PRODUK_CONFIG[p];
+  // tampil/sembunyikan cutting
+  const cs = document.getElementById('cuttingSection');
+  if(cfg.punya_cutting){ cs.classList.add('show'); } else { cs.classList.remove('show'); }
+  updateProdukLabel();
+  buildSizeTable();
+}
+
+function pilihCutting(c, el){
+  selectedCutting = c;
+  document.querySelectorAll('.cut-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  updateProdukLabel();
+}
+
+function updateProdukLabel(){
+  const cfg = PRODUK_CONFIG[selectedProduk];
+  const txt = cfg.punya_cutting
+    ? `${cfg.label} — Cutting ${CUTTING_LABELS[selectedCutting]}`
+    : cfg.label;
+  document.getElementById('produkLabel').textContent = txt;
+  // Update size table title
+  document.getElementById('sizeTableTitle').textContent = 'Jumlah per Ukuran — ' + (cfg.punya_cutting ? cfg.label.split(' ')[1]+' '+CUTTING_LABELS[selectedCutting] : cfg.label.replace(/[^\w\s]/gi,'').trim());
+}
 
 // ===== TOKO (permanen) =====
 let tokoData = JSON.parse(localStorage.getItem('sablonToko') || '{"nama":"","hp":""}');
@@ -417,17 +516,22 @@ updatePreviewHPP();
 
 // ===== BUILD SIZE TABLE =====
 function buildSizeTable(){
+  const cfg = PRODUK_CONFIG[selectedProduk];
+  // update header
+  document.getElementById('sizeTableHead').innerHTML = '<tr><th>Ukuran</th>' +
+    cfg.kolom.map((k,i)=> `<th>${k}${cfg.kolom_extra[i]>0?`<br><span style="font-size:9px;color:var(--accent)">+${cfg.kolom_extra[i]/1000}rb/pcs</span>`:''}</th>`).join('') +
+    '</tr>';
   document.getElementById('sizeRows').innerHTML = SIZES.map(s=>{
     const ex = SIZE_EXTRA[s];
+    const cols = cfg.kolom.map((_,i)=>`<td><input type="number" id="K${i}_${s}" value="0" min="0"></td>`).join('');
     return `<tr>
       <td>${s}${ex>0?`<span class="size-extra">+${ex/1000}rb</span>`:''}</td>
-      <td><input type="number" id="P_${s}" value="0" min="0"></td>
-      <td><input type="number" id="J_${s}" value="0" min="0"></td>
-      <td><input type="number" id="R_${s}" value="0" min="0"></td>
+      ${cols}
     </tr>`;
   }).join('');
 }
 buildSizeTable();
+updateProdukLabel();
 
 // ===== HISTORI =====
 let histori = JSON.parse(localStorage.getItem('sablonHistori4')||'[]');
@@ -529,8 +633,16 @@ function hitung(){
   const ongkir   = +document.getElementById('ongkir').value||0;
   const lain     = +document.getElementById('lain').value||0;
 
+  const cfg = PRODUK_CONFIG[selectedProduk];
+  const numKolom = cfg.kolom.length;
+
+  // Baca qty per kolom per ukuran
   const qty={};
-  SIZES.forEach(s=>{qty['P_'+s]=+document.getElementById('P_'+s).value||0;qty['J_'+s]=+document.getElementById('J_'+s).value||0;qty['R_'+s]=+document.getElementById('R_'+s).value||0;});
+  SIZES.forEach(s=>{
+    for(let i=0;i<numKolom;i++){
+      qty[`K${i}_${s}`] = +document.getElementById(`K${i}_${s}`).value||0;
+    }
+  });
   const totalQty=Object.values(qty).reduce((a,b)=>a+b,0);
   if(totalQty===0){showToast('⚠️ Isi jumlah pcs dulu!','#ff4757');return;}
 
@@ -538,18 +650,20 @@ function hitung(){
   let totalTagihan=0, totalHPP=0;
 
   SIZES.forEach(s=>{
-    const p=qty['P_'+s], j=qty['J_'+s], r=qty['R_'+s];
-    if(p+j+r===0) return;
-    const hJualP = getHargaSize(hargaBase,s,false);
-    const hJualJ = getHargaSize(hargaBase,s,true);
-    const hJualR = hargaBase + SIZE_EXTRA[s] + RIB_EXTRA;
-    const hHppP  = getHargaSize(hppBase,s,false);
-    const hHppJ  = getHargaSize(hppBase,s,true);
-    const hHppR  = hppBase + SIZE_EXTRA[s] + RIB_EXTRA;
-    const subJual= p*hJualP + j*hJualJ + r*hJualR;
-    const subHpp = p*hHppP  + j*hHppJ  + r*hHppR;
+    const qtyArr = cfg.kolom.map((_,i)=>qty[`K${i}_${s}`]||0);
+    const total = qtyArr.reduce((a,b)=>a+b,0);
+    if(total===0) return;
+
+    const hJualArr = cfg.kolom.map((_,i)=> hargaBase + SIZE_EXTRA[s] + cfg.kolom_extra[i]);
+    const hHppArr  = cfg.kolom.map((_,i)=> hppBase   + SIZE_EXTRA[s] + cfg.kolom_extra[i]);
+    const subJual  = qtyArr.reduce((a,q,i)=>a+q*hJualArr[i],0);
+    const subHpp   = qtyArr.reduce((a,q,i)=>a+q*hHppArr[i],0);
     totalTagihan+=subJual; totalHPP+=subHpp;
-    sizeDetail.push({s,p,j,r,hJualP,hJualJ,hJualR,hHppP,hHppJ,hHppR,subJual,subHpp});
+    sizeDetail.push({s, qtyArr, hJualArr, hHppArr, subJual, subHpp,
+      // backward compat
+      p:qtyArr[0]||0, j:qtyArr[1]||0, r:qtyArr[2]||0,
+      hJualP:hJualArr[0]||0, hJualJ:hJualArr[1]||0, hJualR:hJualArr[2]||0
+    });
   });
 
   const biayaTambahan=biayaLabel+hangtag+packing+ongkir+lain;
@@ -562,6 +676,11 @@ function hitung(){
   const order={
     noOrder:noOrder(), namaToko:tokoData.nama, nomorHP:tokoData.hp,
     customer, project, deadline, catatan,
+    produk: selectedProduk, cutting: selectedCutting,
+    produkLabel: cfg.punya_cutting
+      ? `${cfg.label} — Cutting ${CUTTING_LABELS[selectedCutting]}`
+      : cfg.label,
+    kolomNama: cfg.kolom,
     hargaBase, hppBase, biayaLabel, hangtag, packing, ongkir, lain,
     qty, totalQty, sizeDetail, biayaTambahan,
     totalTagihan, totalHPP, hppKaos, hppSablon, hppAfdruk,
@@ -585,12 +704,20 @@ function renderHasil(r){
   const st=getStatus(r);
   const totalBayar=getTotalBayar(r);
   const sisa=getSisa(r);
+  const kolomNama = r.kolomNama || ['Lengan Pendek','Lengan Panjang','Pjg+Rib'];
 
   const sizeRows=r.sizeDetail.map(d=>{
     let rows='';
-    if(d.p>0) rows+=`<div class="result-row"><span class="lbl">${d.s} Lengan Pendek × ${d.p} pcs</span><span class="val">${rp(d.hJualP*d.p)}</span></div>`;
-    if(d.j>0) rows+=`<div class="result-row"><span class="lbl">${d.s} Lengan Panjang × ${d.j} pcs</span><span class="val">${rp(d.hJualJ*d.j)}</span></div>`;
-    if(d.r>0) rows+=`<div class="result-row"><span class="lbl">${d.s} Pjg+Rib × ${d.r} pcs</span><span class="val">${rp(d.hJualR*d.r)}</span></div>`;
+    const qtyArr  = d.qtyArr  || [d.p,d.j,d.r];
+    const hJualArr= d.hJualArr|| [d.hJualP,d.hJualJ,d.hJualR];
+    kolomNama.forEach((kol,i)=>{
+      const q = qtyArr[i]||0;
+      const h = hJualArr[i]||0;
+      if(q>0) rows+=`<div class="result-row">
+        <span class="lbl">${d.s} ${kol} × ${q} pcs<br><span style="font-size:10px;color:var(--muted)">${rp(h)}/pcs</span></span>
+        <span class="val">${rp(h*q)}</span>
+      </div>`;
+    });
     return rows;
   }).join('');
 
@@ -620,6 +747,7 @@ function renderHasil(r){
       <div class="result-row"><span class="lbl">No. Order</span><span class="val">${r.noOrder}</span></div>
       <div class="result-row"><span class="lbl">Customer</span><span class="val">${r.customer||'-'}</span></div>
       <div class="result-row"><span class="lbl">Project</span><span class="val">${r.project||'-'}</span></div>
+      ${r.produkLabel?`<div class="result-row"><span class="lbl">Produk</span><span class="val" style="color:var(--accent);font-size:12px">${r.produkLabel}</span></div>`:''}
       <div class="result-row"><span class="lbl">Tanggal</span><span class="val">${r.waktu}</span></div>
       <div class="result-row"><span class="lbl">Deadline</span><span class="val">${formatDate(r.deadline)}</span></div>
       <div class="result-row"><span class="lbl">Total Qty</span><span class="val">${r.totalQty} pcs</span></div>
@@ -672,15 +800,6 @@ function renderHasil(r){
       <div class="result-row"><span class="lbl" style="color:var(--success);font-weight:700">Keuntungan</span><span class="val" style="color:var(--success)">${rp(r.totalTagihan-r.totalHPP)}</span></div>
     </div>
 
-    <!-- TTD -->
-    <div class="card">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Tanda Tangan</div>
-      <div class="ttd-line">
-        <div class="ttd-box"><div class="line">Penerima Order</div></div>
-        <div class="ttd-box"><div class="line">Customer</div></div>
-      </div>
-    </div>
-
     <div class="btn-row no-print">
       <button class="btn-sec" onclick="printStruk()">🖨️ Print Struk</button>
       <button class="btn-sec" onclick="salinWA()">📋 Salin WA</button>
@@ -693,16 +812,22 @@ function salinWA(){
   if(currentIdx===null){showToast('⚠️ Belum ada hasil','#ff4757');return;}
   const r=histori[currentIdx];
   const st=getStatus(r); const sisa=getSisa(r); const tb=getTotalBayar(r);
+  const kolomNama = r.kolomNama || ['Lengan Pendek','Lengan Panjang','Pjg+Rib'];
   let t=`*${r.namaToko||'WELLMATES'}*\n`;
   if(r.nomorHP) t+=`${r.nomorHP}\n`;
   t+=`━━━━━━━━━━━━━━━━━━━━\n`;
-  t+=`No     : ${r.noOrder}\nCustomer: ${r.customer||'-'}\nProject : ${r.project||'-'}\nTgl     : ${r.waktu}\n`;
+  t+=`No     : ${r.noOrder}\nCustomer: ${r.customer||'-'}\nProject : ${r.project||'-'}\n`;
+  if(r.produkLabel) t+=`Produk  : ${r.produkLabel}\n`;
+  t+=`Tgl     : ${r.waktu}\n`;
   if(r.deadline) t+=`Deadline: ${formatDate(r.deadline)}\n`;
   t+=`Total   : ${r.totalQty} pcs\n━━━━━━━━━━━━━━━━━━━━\n`;
   r.sizeDetail.forEach(d=>{
-    if(d.p>0) t+=`${d.s} Pendek ×${d.p} = ${rp(d.hJualP*d.p)}\n`;
-    if(d.j>0) t+=`${d.s} Panjang ×${d.j} = ${rp(d.hJualJ*d.j)}\n`;
-    if(d.r>0) t+=`${d.s} Pjg+Rib ×${d.r} = ${rp(d.hJualR*d.r)}\n`;
+    const qtyArr  = d.qtyArr  || [d.p,d.j,d.r];
+    const hJualArr= d.hJualArr|| [d.hJualP,d.hJualJ,d.hJualR];
+    kolomNama.forEach((kol,i)=>{
+      const q=qtyArr[i]||0; const h=hJualArr[i]||0;
+      if(q>0) t+=`${d.s} ${kol} ×${q} (${rp(h)}) = ${rp(h*q)}\n`;
+    });
   });
   if(r.biayaTambahan>0) t+=`Biaya Lain = ${rp(r.biayaTambahan)}\n`;
   t+=`━━━━━━━━━━━━━━━━━━━━\n*TOTAL : ${rp(r.totalTagihan)}*\nDibayar: ${rp(tb)}\nSisa   : ${sisa>0?rp(sisa):'LUNAS ✅'}\n`;
