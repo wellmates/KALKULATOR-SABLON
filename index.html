@@ -2458,11 +2458,16 @@ function saveEditOrder() {
 
 function deleteOrder(id) {
   if (!confirm('Hapus order ini?')) return;
-  store.orders = store.orders.filter(o => o.id !== id);
+  const o = store.orders.find(x => x.id === id);
+  if (o) {
+    // Hapus semua cashflow yang terkait dengan order ini (berdasarkan invNo)
+    store.cashflow = store.cashflow.filter(c => !c.desc.includes(o.invNo));
+  }
+  store.orders = store.orders.filter(x => x.id !== id);
   saveData();
   closeModal('detail-modal');
   renderHistory();
-  toast('🗑️ Order dihapus');
+  toast('🗑️ Order & riwayat pemasukan dihapus');
 }
 
 function printDetailInvoice() {
