@@ -493,6 +493,7 @@ body {
   .bottom-nav, .topbar, .topbar-actions { display: none !important; }
   body { background: white; }
   .content { padding: 0; }
+  @page { margin: 10mm; }
 }
 </style>
 </head>
@@ -694,12 +695,16 @@ body {
       <div class="section-header">
         <div class="section-title">Riwayat Order</div>
         <select id="filter-status" onchange="renderHistory()" style="padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg-input);color:var(--text-primary);font-size:13px;outline:none;-webkit-appearance:none">
-          <option value="">Semua</option>
+          <option value="">Semua Status</option>
           <option value="Belum Bayar">Belum Bayar</option>
           <option value="DP">DP</option>
           <option value="Lunas">Lunas</option>
         </select>
       </div>
+      <!-- Filter Bulan -->
+      <select id="filter-month" onchange="renderHistory()" style="width:100%;padding:10px 12px;border-radius:var(--radius-md);border:1.5px solid var(--border);background:var(--bg-input);color:var(--text-primary);font-size:13px;outline:none;-webkit-appearance:none;margin-bottom:10px;font-family:'Inter',sans-serif">
+        <option value="">📅 Semua Bulan</option>
+      </select>
       <input type="search" class="search-bar" placeholder="🔍 Cari pelanggan, produk, invoice..." id="search-history" oninput="renderHistory()">
       <div id="history-list"></div>
     </div>
@@ -721,6 +726,9 @@ body {
 
       <!-- TAB: KAS -->
       <div id="cf-tab-cashflow">
+        <select id="cf-filter-month" onchange="renderCashflow()" style="width:100%;padding:10px 12px;border-radius:var(--radius-md);border:1.5px solid var(--border);background:var(--bg-input);color:var(--text-primary);font-size:13px;outline:none;-webkit-appearance:none;margin-bottom:12px;font-family:'Inter',sans-serif">
+          <option value="">📅 Semua Bulan</option>
+        </select>
         <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr" id="cf-stats"></div>
         <div class="card">
           <div class="card-title">💳 Riwayat Transaksi</div>
@@ -903,11 +911,18 @@ body {
         <button class="btn btn-success btn-sm flex-1" onclick="submitAddDp()">✅ Simpan Pembayaran</button>
       </div>
     </div>
+    <!-- Edit DP section -->
+    <div id="edit-dp-section" style="display:none;margin-top:12px;background:var(--bg);border-radius:var(--radius-md);padding:12px;border:1px solid var(--border)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">✏️ Edit Riwayat Pembayaran</div>
+      <div id="edit-dp-list"></div>
+      <button class="btn btn-outline btn-sm mt-8" style="width:100%" onclick="document.getElementById('edit-dp-section').style.display='none'">Tutup</button>
+    </div>
     <div class="flex gap-8 mt-12" style="flex-wrap:wrap">
       <button class="btn btn-outline btn-sm flex-1" onclick="printDetailInvoice()">🖨️ Print</button>
       <button class="btn btn-wa btn-sm flex-1" onclick="copyDetailWA()">📲 WA</button>
       <button class="btn btn-primary btn-sm flex-1" onclick="openEditOrder()">✏️ Edit</button>
       <button class="btn btn-success btn-sm" onclick="openAddDp()" title="Tambah DP/Pelunasan">💳+</button>
+      <button class="btn btn-outline btn-sm" onclick="openEditDp()" title="Edit Riwayat DP">🖊️</button>
       <button class="btn btn-danger btn-sm" id="delete-order-btn">🗑️</button>
     </div>
   </div>
@@ -1645,8 +1660,8 @@ function buildA4Invoice(d) {
       <!-- HEADER TOKO -->
       <div style="background:#1E1B4B;margin:-16px -16px 0;padding:14px 16px;border-radius:10px 10px 0 0">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div style="display:flex;align-items:center;gap:10px">
-            ${d.shop.logoData ? `<img src="${d.shop.logoData}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0">` : ''}
+          <div style="display:flex;align-items:center;gap:12px">
+            ${d.shop.logoData ? `<img src="${d.shop.logoData}" style="width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.3)">` : ''}
             <div>
               <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-.3px">${d.shop.shopname}</div>
               ${shopLines}
@@ -1921,13 +1936,37 @@ function clearForm() {
 // ===================================================
 // HISTORY — mobile card layout
 // ===================================================
+function populateMonthFilter() {
+  const sel = document.getElementById('filter-month');
+  if (!sel) return;
+  const months = new Set();
+  store.orders.forEach(o => {
+    const d = new Date(o.date);
+    months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  });
+  const sorted = [...months].sort().reverse();
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">📅 Semua Bulan</option>` +
+    sorted.map(m => {
+      const [y, mo] = m.split('-');
+      const label = new Date(+y, +mo-1, 1).toLocaleDateString('id-ID', {month:'long', year:'numeric'});
+      return `<option value="${m}" ${cur===m?'selected':''}>${label}</option>`;
+    }).join('');
+}
+
 function renderHistory() {
+  populateMonthFilter();
   const list = document.getElementById('history-list');
   const search = document.getElementById('search-history').value.toLowerCase();
   const filterStatus = document.getElementById('filter-status').value;
+  const filterMonth = document.getElementById('filter-month').value;
   let orders = [...store.orders].reverse();
   if (search) orders = orders.filter(o => o.customer.toLowerCase().includes(search) || o.product.toLowerCase().includes(search) || o.invNo.toLowerCase().includes(search));
   if (filterStatus) orders = orders.filter(o => o.payStatus === filterStatus);
+  if (filterMonth) {
+    const [fy, fm] = filterMonth.split('-').map(Number);
+    orders = orders.filter(o => { const d = new Date(o.date); return d.getFullYear()===fy && d.getMonth()+1===fm; });
+  }
 
   if (!orders.length) {
     list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Belum ada order tersimpan</p></div>';
@@ -1996,10 +2035,12 @@ function openDetail(id) {
   refreshDetailBody();
   document.getElementById('delete-order-btn').onclick = () => deleteOrder(id);
   document.getElementById('add-dp-section').style.display = 'none';
+  document.getElementById('edit-dp-section').style.display = 'none';
   openModal('detail-modal');
 }
 
 function openAddDp() {
+  document.getElementById('edit-dp-section').style.display = 'none';
   const sec = document.getElementById('add-dp-section');
   sec.style.display = sec.style.display === 'none' ? '' : 'none';
   const o = currentDetailOrder;
@@ -2008,6 +2049,106 @@ function openAddDp() {
     document.getElementById('add-dp-note').value = `DP ke-${dpCount}`;
     document.getElementById('add-dp-amount').value = '';
   }
+}
+
+function openEditDp() {
+  document.getElementById('add-dp-section').style.display = 'none';
+  const sec = document.getElementById('edit-dp-section');
+  sec.style.display = sec.style.display === 'none' ? '' : 'none';
+  if (sec.style.display !== 'none') renderEditDpList();
+}
+
+function renderEditDpList() {
+  const o = currentDetailOrder;
+  if (!o) return;
+  const list = document.getElementById('edit-dp-list');
+  if (!o.dpHistory || o.dpHistory.length === 0) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--text-muted);text-align:center;padding:12px">Belum ada riwayat pembayaran</div>';
+    return;
+  }
+  list.innerHTML = o.dpHistory.map((dp, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1">
+        <input type="text" value="${dp.note||`DP ke-${i+1}`}" id="edp-note-${i}"
+          style="width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg-input);color:var(--text-primary);font-family:'Inter',sans-serif;outline:none;margin-bottom:4px">
+        <input type="number" inputmode="numeric" value="${dp.amount}" id="edp-amount-${i}"
+          style="width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg-input);color:var(--text-primary);font-family:'JetBrains Mono',monospace;outline:none">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <button class="btn btn-success btn-sm" style="padding:5px 10px;font-size:12px" onclick="saveEditDpItem(${i})">✅</button>
+        <button class="btn btn-danger btn-sm" style="padding:5px 10px;font-size:12px" onclick="deleteEditDpItem(${i})">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function saveEditDpItem(i) {
+  const o = currentDetailOrder;
+  if (!o || !o.dpHistory) return;
+  const newNote   = document.getElementById(`edp-note-${i}`).value;
+  const newAmount = parseFloat(document.getElementById(`edp-amount-${i}`).value) || 0;
+  const oldAmount = o.dpHistory[i].amount;
+  const diff = newAmount - oldAmount;
+
+  // Update dpHistory entry
+  o.dpHistory[i].note   = newNote;
+  o.dpHistory[i].amount = newAmount;
+
+  // Recalculate totals
+  const totalPaid = o.dpHistory.reduce((a,x) => a+x.amount, 0);
+  o.dp   = totalPaid;
+  o.sisa = o.totalRevenue - totalPaid;
+  if (o.sisa <= 0) { o.sisa = 0; o.payStatus = 'Lunas'; }
+  else o.payStatus = 'DP';
+
+  // Update corresponding cashflow entry (match by desc containing invNo + old note) — try to find & fix amount
+  const cfIdx = store.cashflow.findIndex(c =>
+    c.type === 'in' && c.desc.includes(o.invNo) &&
+    (c.desc.includes(o.dpHistory[i].note) || c.amount === oldAmount)
+  );
+  if (cfIdx >= 0) {
+    store.cashflow[cfIdx].amount = newAmount;
+    store.cashflow[cfIdx].desc = `${newNote} ${o.invNo} — ${o.customer}`;
+  }
+
+  // Update in store
+  const idx = store.orders.findIndex(x => x.id === o.id);
+  if (idx >= 0) store.orders[idx] = o;
+  currentDetailOrder = o;
+
+  saveData();
+  renderEditDpList();
+  refreshDetailBody();
+  renderHistory();
+  toast('✅ Pembayaran diperbarui!');
+}
+
+function deleteEditDpItem(i) {
+  const o = currentDetailOrder;
+  if (!o || !o.dpHistory) return;
+  const removed = o.dpHistory[i];
+
+  // Remove matching cashflow entry
+  store.cashflow = store.cashflow.filter(c =>
+    !(c.type === 'in' && c.desc.includes(o.invNo) && c.amount === removed.amount && c.desc.includes(removed.note || ''))
+  );
+
+  o.dpHistory.splice(i, 1);
+  const totalPaid = o.dpHistory.reduce((a,x) => a+x.amount, 0);
+  o.dp   = totalPaid;
+  o.sisa = o.totalRevenue - totalPaid;
+  if (o.dpHistory.length === 0) { o.payStatus = 'Belum Bayar'; o.dp = 0; o.sisa = o.totalRevenue; }
+  else if (o.sisa <= 0) { o.sisa = 0; o.payStatus = 'Lunas'; }
+  else o.payStatus = 'DP';
+
+  const idx = store.orders.findIndex(x => x.id === o.id);
+  if (idx >= 0) store.orders[idx] = o;
+  currentDetailOrder = o;
+
+  saveData();
+  renderEditDpList();
+  refreshDetailBody();
+  renderHistory();
+  toast('🗑️ Pembayaran dihapus');
 }
 
 function submitAddDp() {
@@ -2157,7 +2298,7 @@ function printDetailInvoice() {
   const win = window.open('', '_blank');
   win.document.write(`<html><head><title>Invoice ${d.invNo}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,sans-serif;padding:20px;background:#fff}
+    <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,sans-serif;padding:20px;background:#fff}@page{margin:10mm;size:A4}
     ${document.querySelector('style').textContent}</style></head><body>${html}
     <script>window.onload=()=>{window.print();window.close()}<\/script></body></html>`);
   win.document.close();
@@ -2205,9 +2346,33 @@ function setBelanjaTab(tab, el) {
 // CASHFLOW
 // ===================================================
 function renderCashflow() {
-  const cf = [...store.cashflow].reverse();
-  const totalIn = store.cashflow.filter(c => c.type === 'in').reduce((a, c) => a + c.amount, 0);
-  const totalOut = store.cashflow.filter(c => c.type === 'out').reduce((a, c) => a + c.amount, 0);
+  // Populate month filter
+  const sel = document.getElementById('cf-filter-month');
+  if (sel) {
+    const months = new Set();
+    store.cashflow.forEach(c => {
+      const d = new Date(c.date);
+      months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+    });
+    const sorted = [...months].sort().reverse();
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">📅 Semua Bulan</option>` +
+      sorted.map(m => {
+        const [y, mo] = m.split('-');
+        const label = new Date(+y, +mo-1, 1).toLocaleDateString('id-ID', {month:'long', year:'numeric'});
+        return `<option value="${m}" ${cur===m?'selected':''}>${label}</option>`;
+      }).join('');
+  }
+
+  const filterMonth = sel ? sel.value : '';
+  let cfAll = store.cashflow;
+  if (filterMonth) {
+    const [fy, fm] = filterMonth.split('-').map(Number);
+    cfAll = cfAll.filter(c => { const d = new Date(c.date); return d.getFullYear()===fy && d.getMonth()+1===fm; });
+  }
+  const cf = [...cfAll].reverse();
+  const totalIn  = cfAll.filter(c => c.type === 'in').reduce((a, c) => a + c.amount, 0);
+  const totalOut = cfAll.filter(c => c.type === 'out').reduce((a, c) => a + c.amount, 0);
   const net = totalIn - totalOut;
 
   document.getElementById('cf-stats').innerHTML = `
