@@ -65,7 +65,132 @@
   --accent: #FBBF24;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+/* ===== FLAME THEME (Merah-Oranye-Putih) ===== */
+[data-theme="flame"] {
+  --brand: #E8400C;
+  --brand-light: #FFF1ED;
+  --brand-dark: #C0320A;
+  --accent: #F97316;
+  --accent-light: #FFF7ED;
+  --danger: #DC2626;
+  --success: #16A34A;
+  --success-light: #F0FDF4;
+
+  --bg: #FFF8F6;
+  --bg-card: #FFFFFF;
+  --bg-input: #FFFFFF;
+  --border: #FDDDD6;
+  --border-focus: #E8400C;
+
+  --text-primary: #1C0A04;
+  --text-secondary: #78350F;
+  --text-muted: #A8784A;
+  --text-inverse: #FFFFFF;
+
+  --shadow-sm: 0 1px 3px rgba(232,64,12,.08);
+  --shadow-md: 0 4px 16px rgba(232,64,12,.10);
+  --shadow-lg: 0 8px 32px rgba(232,64,12,.14);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+[data-theme="flame-dark"] {
+  --brand: #FB7A3C;
+  --brand-light: #2D1200;
+  --brand-dark: #E8400C;
+  --accent: #FBBF24;
+  --accent-light: #2D1A00;
+  --danger: #F87171;
+  --success: #4ADE80;
+  --success-light: #052E16;
+
+  --bg: #0F0804;
+  --bg-card: #1C0E07;
+  --bg-input: #221107;
+  --border: #3D1A0A;
+  --border-focus: #FB7A3C;
+
+  --text-primary: #FDF4EF;
+  --text-secondary: #FBB99A;
+  --text-muted: #A8612A;
+  --text-inverse: #FFFFFF;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.5);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.6);
+}
+
+/* ===== FLAME: component overrides ===== */
+[data-theme="flame"] .hpp-box,
+[data-theme="flame-dark"] .hpp-box {
+  background: linear-gradient(135deg, #7C1500 0%, #C0320A 100%);
+}
+[data-theme="flame"] .topbar,
+[data-theme="flame-dark"] .topbar {
+  background: var(--bg-card);
+  border-bottom: 2px solid var(--brand);
+}
+[data-theme="flame"] .logo-icon,
+[data-theme="flame-dark"] .logo-icon {
+  background: linear-gradient(135deg, #E8400C, #FB923C);
+}
+[data-theme="flame"] .fab,
+[data-theme="flame-dark"] .fab {
+  background: var(--brand);
+  box-shadow: 0 4px 16px rgba(232,64,12,.45);
+}
+[data-theme="flame"] .btn-primary,
+[data-theme="flame-dark"] .btn-primary {
+  background: var(--brand);
+}
+[data-theme="flame"] .btn-primary:active,
+[data-theme="flame-dark"] .btn-primary:active {
+  background: var(--brand-dark);
+}
+[data-theme="flame"] .progress-bar-fill,
+[data-theme="flame-dark"] .progress-bar-fill {
+  background: linear-gradient(90deg, #FB923C, #FBBF24);
+}
+[data-theme="flame"] .nav-item.active,
+[data-theme="flame-dark"] .nav-item.active {
+  color: var(--brand);
+}
+[data-theme="flame"] .tab.active,
+[data-theme="flame-dark"] .tab.active {
+  color: var(--brand);
+}
+[data-theme="flame"] .size-item.selected,
+[data-theme="flame-dark"] .size-item.selected {
+  border-color: var(--brand);
+  background: var(--brand-light);
+}
+[data-theme="flame-dark"] .hpp-box {
+  background: linear-gradient(135deg, #3D0A00 0%, #7C1500 100%);
+}
+
+/* ===== THEME PICKER ===== */
+.theme-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.theme-card {
+  border: 2.5px solid var(--border); border-radius: var(--radius-md);
+  padding: 10px; cursor: pointer; transition: all .15s; position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.theme-card:active { transform: scale(.97); }
+.theme-card.active { border-color: var(--brand); }
+.theme-card .tc-preview {
+  width: 100%; height: 36px; border-radius: 6px; overflow: hidden;
+  display: flex; align-items: stretch;
+}
+.theme-card .tc-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+.theme-card .tc-check {
+  position: absolute; top: 6px; right: 6px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--brand); color: #fff;
+  font-size: 10px; display: none; align-items: center; justify-content: center;
+}
+.theme-card.active .tc-check { display: flex; }
 html { height: 100%; height: -webkit-fill-available; }
 body {
   min-height: 100%; min-height: -webkit-fill-available;
@@ -507,9 +632,7 @@ body {
       <div class="topbar-title" id="topbar-title">SablonPro</div>
     </div>
     <div class="topbar-actions">
-      <span style="font-size:12px;color:var(--text-muted)">☀️</span>
-      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"></button>
-      <span style="font-size:12px;color:var(--text-muted)">🌙</span>
+      <button class="btn btn-ghost btn-icon" style="font-size:18px" onclick="openSettingsModal()" title="Ganti tema & pengaturan">🎨</button>
       <button class="btn btn-ghost btn-icon" style="font-size:18px" onclick="openSettingsModal()">⚙️</button>
     </div>
   </div>
@@ -868,6 +991,56 @@ body {
         <input type="text" id="s-bank-owner" placeholder="Nama sesuai buku tabungan">
       </div>
     </div>
+    <!-- THEME PICKER -->
+    <div style="margin-top:16px">
+      <div class="card-title" style="margin-bottom:10px">🎨 Pilih Tema</div>
+      <div class="theme-picker" id="theme-picker">
+        <div class="theme-card" data-theme-val="light" onclick="applyTheme('light')">
+          <div class="tc-preview">
+            <div style="flex:1;background:#4F46E5"></div>
+            <div style="flex:2;background:#F8FAFC;display:flex;flex-direction:column;padding:4px;gap:2px">
+              <div style="height:6px;background:#E2E8F0;border-radius:2px"></div>
+              <div style="height:6px;background:#E2E8F0;border-radius:2px;width:70%"></div>
+            </div>
+          </div>
+          <div class="tc-label">☀️ Indigo Light</div>
+          <div class="tc-check">✓</div>
+        </div>
+        <div class="theme-card" data-theme-val="dark" onclick="applyTheme('dark')">
+          <div class="tc-preview">
+            <div style="flex:1;background:#818CF8"></div>
+            <div style="flex:2;background:#0F0F1A;display:flex;flex-direction:column;padding:4px;gap:2px">
+              <div style="height:6px;background:#2D2D45;border-radius:2px"></div>
+              <div style="height:6px;background:#2D2D45;border-radius:2px;width:70%"></div>
+            </div>
+          </div>
+          <div class="tc-label">🌙 Indigo Dark</div>
+          <div class="tc-check">✓</div>
+        </div>
+        <div class="theme-card" data-theme-val="flame" onclick="applyTheme('flame')">
+          <div class="tc-preview">
+            <div style="flex:1;background:linear-gradient(180deg,#E8400C,#F97316)"></div>
+            <div style="flex:2;background:#FFF8F6;display:flex;flex-direction:column;padding:4px;gap:2px">
+              <div style="height:6px;background:#FDDDD6;border-radius:2px"></div>
+              <div style="height:6px;background:#FDDDD6;border-radius:2px;width:70%"></div>
+            </div>
+          </div>
+          <div class="tc-label">🔥 Flame Light</div>
+          <div class="tc-check">✓</div>
+        </div>
+        <div class="theme-card" data-theme-val="flame-dark" onclick="applyTheme('flame-dark')">
+          <div class="tc-preview">
+            <div style="flex:1;background:linear-gradient(180deg,#FB7A3C,#E8400C)"></div>
+            <div style="flex:2;background:#0F0804;display:flex;flex-direction:column;padding:4px;gap:2px">
+              <div style="height:6px;background:#3D1A0A;border-radius:2px"></div>
+              <div style="height:6px;background:#3D1A0A;border-radius:2px;width:70%"></div>
+            </div>
+          </div>
+          <div class="tc-label">🌋 Flame Dark</div>
+          <div class="tc-check">✓</div>
+        </div>
+      </div>
+    </div>
     <div class="flex gap-8 mt-16">
       <button class="btn btn-outline flex-1" onclick="closeModal('settings-modal')">Batal</button>
       <button class="btn btn-primary flex-1" onclick="saveSettings()">💾 Simpan</button>
@@ -1205,18 +1378,24 @@ function navigate(page) {
 // ===================================================
 // THEME
 // ===================================================
-function toggleTheme() {
-  const html = document.documentElement;
-  const isDark = html.getAttribute('data-theme') === 'dark';
-  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-  document.getElementById('theme-toggle').classList.toggle('on', !isDark);
-  localStorage.setItem('sablonpro_theme', isDark ? 'light' : 'dark');
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('sablonpro_theme', t);
+  // Update picker UI
+  document.querySelectorAll('.theme-card').forEach(card => {
+    card.classList.toggle('active', card.dataset.themeVal === t);
+  });
   recalculate();
 }
 function loadTheme() {
   const t = localStorage.getItem('sablonpro_theme') || 'light';
   document.documentElement.setAttribute('data-theme', t);
-  if (t === 'dark') document.getElementById('theme-toggle').classList.add('on');
+}
+function syncThemePicker() {
+  const t = document.documentElement.getAttribute('data-theme') || 'light';
+  document.querySelectorAll('.theme-card').forEach(card => {
+    card.classList.toggle('active', card.dataset.themeVal === t);
+  });
 }
 
 // ===================================================
@@ -1243,6 +1422,7 @@ function openSettingsModal() {
     document.getElementById('logo-preview-placeholder').style.display = '';
   }
   openModal('settings-modal');
+  syncThemePicker();
 }
 
 function handleLogoUpload(input) {
@@ -1900,18 +2080,12 @@ function saveOrder() {
   store.orders.push(order);
   store.invoiceCounter++;
 
-  // Cashflow: pemasukan
+  // Cashflow: pemasukan dari order (masuk ke riwayat)
+  const tglOrder = new Date().toISOString().split('T')[0];
   if (d.payStatus === 'Lunas') {
-    store.cashflow.push({ id: Date.now()+1, type: 'in', desc: `Order ${d.invNo} — ${d.customer}`, amount: d.totalRevenue, date: new Date().toISOString().split('T')[0], category: 'Penjualan' });
+    store.cashflow.push({ id: Date.now()+1, type: 'in', desc: `Lunas — ${d.invNo} (${d.customer})`, amount: d.totalRevenue, date: tglOrder, category: 'Penjualan' });
   } else if (d.payStatus === 'DP' && d.dp > 0) {
-    store.cashflow.push({ id: Date.now()+1, type: 'in', desc: `DP ke-1 ${d.invNo} — ${d.customer}`, amount: d.dp, date: new Date().toISOString().split('T')[0], category: 'Penjualan' });
-  }
-
-  // Cashflow: pengeluaran HPP breakdown
-  if (baseHpp > 0 && totalPcs > 0) {
-    const tgl = new Date().toISOString().split('T')[0];
-    if (breakdown.bahan > 0) store.cashflow.push({ id: Date.now()+2, type: 'out', desc: `HPP Bahan ${d.invNo} — ${d.customer} (${totalPcs}pcs)`, amount: breakdown.bahan * totalPcs, date: tgl, category: 'Bahan Baku' });
-    if (breakdown.sablon > 0) store.cashflow.push({ id: Date.now()+3, type: 'out', desc: `HPP Sablon/Bordir ${d.invNo} — ${d.customer} (${totalPcs}pcs)`, amount: breakdown.sablon * totalPcs, date: tgl, category: 'Biaya Produksi' });
+    store.cashflow.push({ id: Date.now()+1, type: 'in', desc: `DP ke-1 — ${d.invNo} (${d.customer})`, amount: d.dp, date: tglOrder, category: 'Penjualan' });
   }
 
   saveData();
@@ -2167,8 +2341,8 @@ function submitAddDp() {
   o.sisa = o.totalRevenue - totalPaid;
   if (o.sisa <= 0) { o.sisa = 0; o.payStatus = 'Lunas'; }
   else o.payStatus = 'DP';
-  // Add to cashflow
-  store.cashflow.push({ id: Date.now(), type: 'in', desc: `${note} ${o.invNo} — ${o.customer}`, amount, date: tgl, category: 'Penjualan' });
+  // Pemasukan masuk ke riwayat transaksi
+  store.cashflow.push({ id: Date.now(), type: 'in', desc: `${note} — ${o.invNo} (${o.customer})`, amount, date: tgl, category: 'Penjualan' });
   saveData();
   currentDetailOrder = o;
   document.getElementById('add-dp-section').style.display = 'none';
@@ -2418,20 +2592,72 @@ function renderCashflow() {
     </div>
   `;
 
-  if (!cf.length) {
+  if (!cf.length && !store.hutang.length && !store.piutang.length && !store.belanja.length) {
     document.getElementById('cashflow-table').innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div><p>Belum ada transaksi</p></div>';
     return;
   }
-  document.getElementById('cashflow-table').innerHTML = cf.map(c => `
+
+  // Build unified feed: cashflow + hutang + piutang + belanja
+  const feedItems = [];
+
+  cf.forEach(c => feedItems.push({
+    _date: c.date, _ts: new Date(c.date).getTime(),
+    icon: c.type === 'in' ? '📥' : '📤',
+    label: c.desc,
+    sub: `${new Date(c.date).toLocaleDateString('id-ID')} • ${c.category}`,
+    amountStr: `${c.type === 'in' ? '+' : '-'}${fmtRp(c.amount)}`,
+    amountClass: c.type === 'in' ? 'cf-in' : 'cf-out',
+    action: `<button class="btn btn-ghost btn-icon btn-sm" style="padding:2px;font-size:14px" onclick="deleteCashflow(${c.id})">🗑️</button>`,
+    tag: `<span style="font-size:10px;background:var(--brand-light);color:var(--brand);padding:2px 6px;border-radius:4px;font-weight:700">KAS</span>`,
+  }));
+
+  store.hutang.forEach(x => feedItems.push({
+    _ts: new Date(x.date).getTime(),
+    icon: x.lunas ? '✅' : '🔴',
+    label: `Hutang — ${x.pihak}`,
+    sub: `${new Date(x.date).toLocaleDateString('id-ID')}${x.desc ? ' • ' + x.desc : ''}`,
+    amountStr: `-${fmtRp(x.amount)}`,
+    amountClass: 'cf-out',
+    action: '',
+    tag: `<span style="font-size:10px;background:#FEF2F2;color:var(--danger);padding:2px 6px;border-radius:4px;font-weight:700">${x.lunas ? 'LUNAS' : 'HUTANG'}</span>`,
+  }));
+
+  store.piutang.forEach(x => feedItems.push({
+    _ts: new Date(x.date).getTime(),
+    icon: x.lunas ? '✅' : '🟢',
+    label: `Piutang — ${x.pihak}`,
+    sub: `${new Date(x.date).toLocaleDateString('id-ID')}${x.desc ? ' • ' + x.desc : ''}`,
+    amountStr: `+${fmtRp(x.amount)}`,
+    amountClass: 'cf-in',
+    action: '',
+    tag: `<span style="font-size:10px;background:#ECFDF5;color:var(--success);padding:2px 6px;border-radius:4px;font-weight:700">${x.lunas ? 'LUNAS' : 'PIUTANG'}</span>`,
+  }));
+
+  store.belanja.forEach(x => feedItems.push({
+    _ts: new Date(x.date).getTime(),
+    icon: x.jenis === 'bahan' ? '🧵' : '🎨',
+    label: x.desc,
+    sub: `${new Date(x.date).toLocaleDateString('id-ID')} • ${x.jenis === 'bahan' ? 'Belanja Bahan' : 'Belanja Sablon'}`,
+    amountStr: `-${fmtRp(x.amount)}`,
+    amountClass: 'cf-out',
+    action: '',
+    tag: `<span style="font-size:10px;background:#FFF7ED;color:var(--accent);padding:2px 6px;border-radius:4px;font-weight:700">BELANJA</span>`,
+  }));
+
+  // Sort newest first
+  feedItems.sort((a, b) => b._ts - a._ts);
+
+  document.getElementById('cashflow-table').innerHTML = feedItems.map(item => `
     <div class="cf-item">
-      <div style="font-size:22px">${c.type === 'in' ? '📥' : '📤'}</div>
+      <div style="font-size:20px;flex-shrink:0">${item.icon}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.desc}</div>
-        <div style="font-size:11px;color:var(--text-muted)">${new Date(c.date).toLocaleDateString('id-ID')} • ${c.category}</div>
+        <div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.label}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:1px">${item.sub}</div>
+        <div style="margin-top:3px">${item.tag}</div>
       </div>
-      <div style="text-align:right;flex-shrink:0">
-        <div class="${c.type === 'in' ? 'cf-in' : 'cf-out'}" style="font-size:13px">${c.type === 'in' ? '+' : '-'}${fmtRp(c.amount)}</div>
-        <button class="btn btn-ghost btn-icon btn-sm" style="padding:2px;font-size:14px" onclick="deleteCashflow(${c.id})">🗑️</button>
+      <div style="text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+        <div class="${item.amountClass}" style="font-size:13px">${item.amountStr}</div>
+        ${item.action}
       </div>
     </div>`).join('');
 }
@@ -2864,6 +3090,7 @@ if ('serviceWorker' in navigator) {
 // ===================================================
 loadData();
 loadTheme();
+syncThemePicker();
 renderSizeGrid();
 renderCuttingBtns();
 updateProdukSummary();
