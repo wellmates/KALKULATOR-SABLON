@@ -729,7 +729,7 @@ body {
         <select id="cf-filter-month" onchange="renderCashflow()" style="width:100%;padding:10px 12px;border-radius:var(--radius-md);border:1.5px solid var(--border);background:var(--bg-input);color:var(--text-primary);font-size:13px;outline:none;-webkit-appearance:none;margin-bottom:12px;font-family:'Inter',sans-serif">
           <option value="">📅 Semua Bulan</option>
         </select>
-        <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr" id="cf-stats"></div>
+        <div class="stats-grid" style="grid-template-columns:1fr 1fr" id="cf-stats"></div>
         <div class="card">
           <div class="card-title">💳 Riwayat Transaksi</div>
           <div id="cashflow-table"></div>
@@ -1717,6 +1717,7 @@ function buildA4Invoice(d) {
       ${d.notes ? `<div class="inv-notes" style="margin-top:10px">📝 ${d.notes}</div>` : ''}
 
       ${rekeningBlock}
+      <div style="height:4px"></div>
     </div>`;
 }
 
@@ -2298,7 +2299,7 @@ function printDetailInvoice() {
   const win = window.open('', '_blank');
   win.document.write(`<html><head><title>Invoice ${d.invNo}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,sans-serif;padding:20px;background:#fff}@page{margin:10mm;size:A4}
+    <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,sans-serif;padding:20px;background:#fff}@page{margin:0;size:A4}
     ${document.querySelector('style').textContent}</style></head><body>${html}
     <script>window.onload=()=>{window.print();window.close()}<\/script></body></html>`);
   win.document.close();
@@ -2373,12 +2374,48 @@ function renderCashflow() {
   const cf = [...cfAll].reverse();
   const totalIn  = cfAll.filter(c => c.type === 'in').reduce((a, c) => a + c.amount, 0);
   const totalOut = cfAll.filter(c => c.type === 'out').reduce((a, c) => a + c.amount, 0);
-  const net = totalIn - totalOut;
+
+  // Belanja total (all time — berdiri sendiri, tidak difilter bulan agar konsisten)
+  const totalBelanja = store.belanja.reduce((a, x) => a + x.amount, 0);
+
+  // Piutang & hutang yang belum lunas (all time)
+  const totalPiutang = store.piutang.filter(x => !x.lunas).reduce((a, x) => a + x.amount, 0);
+  const totalHutang  = store.hutang.filter(x => !x.lunas).reduce((a, x) => a + x.amount, 0);
+
+  // Saldo Bersih = Pemasukan + Piutang - Hutang - Total Belanja
+  const saldo = totalIn + totalPiutang - totalHutang - totalBelanja;
 
   document.getElementById('cf-stats').innerHTML = `
-    <div class="stat-card"><div class="stat-icon" style="background:#ECFDF5">💰</div><div class="stat-value" style="font-size:14px">${fmtRp(totalIn)}</div><div class="stat-label">Pemasukan</div></div>
-    <div class="stat-card"><div class="stat-icon" style="background:#FEF2F2">💸</div><div class="stat-value" style="font-size:14px;color:var(--danger)">${fmtRp(totalOut)}</div><div class="stat-label">Pengeluaran</div></div>
-    <div class="stat-card" style="grid-column:1/-1"><div class="stat-icon" style="background:var(--brand-light)">📊</div><div class="stat-value" style="color:${net>=0?'var(--success)':'var(--danger)'}">${fmtRp(net)}</div><div class="stat-label">Saldo Bersih</div></div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#ECFDF5">💰</div>
+      <div class="stat-value" style="font-size:14px">${fmtRp(totalIn)}</div>
+      <div class="stat-label">Pemasukan</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#FEF2F2">📤</div>
+      <div class="stat-value" style="font-size:14px;color:var(--danger)">${fmtRp(totalOut)}</div>
+      <div class="stat-label">Pengeluaran (Invoice)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#FFF7ED">🛒</div>
+      <div class="stat-value" style="font-size:14px;color:var(--accent)">${fmtRp(totalBelanja)}</div>
+      <div class="stat-label">Pengeluaran Belanja</div>
+    </div>
+    <div class="stat-card" style="grid-column:1/-1;background:linear-gradient(135deg,#1E1B4B,#312E81);border:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.6;color:#fff;margin-bottom:3px">SALDO BERSIH</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;color:${saldo>=0?'#34D399':'#FCA5A5'}">${fmtRp(Math.abs(saldo))}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:2px">${saldo>=0?'📈 Surplus':'📉 Defisit'}</div>
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,.55);line-height:1.8;text-align:right">
+          <div>Pemasukan <span style="color:rgba(255,255,255,.85);font-weight:700">+${fmtRp(totalIn)}</span></div>
+          <div>Piutang <span style="color:#86efac;font-weight:700">+${fmtRp(totalPiutang)}</span></div>
+          <div>Hutang <span style="color:#fca5a5;font-weight:700">−${fmtRp(totalHutang)}</span></div>
+          <div>Belanja <span style="color:#fcd34d;font-weight:700">−${fmtRp(totalBelanja)}</span></div>
+        </div>
+      </div>
+    </div>
   `;
 
   if (!cf.length) {
