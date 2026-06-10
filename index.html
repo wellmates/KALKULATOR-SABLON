@@ -2,8 +2,14 @@
 <html lang="id" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SablonPro">
+<meta name="theme-color" content="#4F46E5">
 <title>SablonPro — Kalkulator HPP & Invoice</title>
+<link rel="manifest" href="./manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -20,7 +26,6 @@
 
   --bg: #F8FAFC;
   --bg-card: #FFFFFF;
-  --bg-sidebar: #1E1B4B;
   --bg-input: #FFFFFF;
   --border: #E2E8F0;
   --border-focus: #4F46E5;
@@ -38,14 +43,14 @@
   --radius-md: 12px;
   --radius-lg: 16px;
 
-  --sidebar-w: 220px;
-  --topbar-h: 60px;
+  --bottom-nav-h: 64px;
+  --topbar-h: 56px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 [data-theme="dark"] {
   --bg: #0F0F1A;
   --bg-card: #1A1A2E;
-  --bg-sidebar: #0D0D1A;
   --bg-input: #1E1E30;
   --border: #2D2D45;
   --border-focus: #818CF8;
@@ -60,57 +65,18 @@
   --accent: #FBBF24;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-primary); transition: background .25s, color .25s; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; height: -webkit-fill-available; }
+body {
+  min-height: 100%; min-height: -webkit-fill-available;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg); color: var(--text-primary);
+  transition: background .25s, color .25s;
+  overscroll-behavior: none;
+}
 
 /* ===================== LAYOUT ===================== */
-.app { display: flex; height: 100vh; overflow: hidden; }
-
-/* SIDEBAR */
-.sidebar {
-  width: var(--sidebar-w);
-  background: var(--bg-sidebar);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  overflow-y: auto;
-  z-index: 100;
-}
-.sidebar-logo {
-  padding: 20px 16px 16px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-}
-.sidebar-logo .logo-mark {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.logo-icon {
-  width: 36px; height: 36px;
-  background: linear-gradient(135deg, #4F46E5, #818CF8);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-}
-.logo-text { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -.3px; }
-.logo-sub { font-size: 10px; color: rgba(255,255,255,.4); font-weight: 400; margin-top: 1px; }
-
-.sidebar-nav { padding: 12px 8px; flex: 1; }
-.nav-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; color: rgba(255,255,255,.3); text-transform: uppercase; padding: 8px 8px 4px; }
-.nav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 10px; border-radius: var(--radius-sm);
-  cursor: pointer; color: rgba(255,255,255,.55);
-  font-size: 13px; font-weight: 500;
-  transition: all .15s; margin-bottom: 2px;
-  border: none; background: none; width: 100%; text-align: left;
-}
-.nav-item:hover { background: rgba(255,255,255,.08); color: rgba(255,255,255,.9); }
-.nav-item.active { background: rgba(79,70,229,.4); color: #fff; }
-.nav-item .nav-icon { width: 18px; text-align: center; font-size: 15px; flex-shrink: 0; }
-
-/* MAIN */
-.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.app { display: flex; flex-direction: column; height: 100dvh; height: 100vh; overflow: hidden; }
 
 /* TOPBAR */
 .topbar {
@@ -118,48 +84,97 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   background: var(--bg-card);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 24px; flex-shrink: 0;
+  padding: 0 16px;
+  padding-top: env(safe-area-inset-top, 0px);
+  flex-shrink: 0;
   box-shadow: var(--shadow-sm);
+  z-index: 50;
 }
-.topbar-title { font-size: 17px; font-weight: 700; }
-.topbar-actions { display: flex; align-items: center; gap: 10px; }
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #4F46E5, #818CF8); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.topbar-title { font-size: 16px; font-weight: 700; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
 
 /* CONTENT */
-.content { flex: 1; overflow-y: auto; padding: 24px; }
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  padding-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 16px);
+  -webkit-overflow-scrolling: touch;
+}
 
 /* PAGES */
 .page { display: none; }
 .page.active { display: block; }
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: calc(var(--bottom-nav-h) + var(--safe-bottom));
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: flex-start;
+  padding-top: 6px;
+  padding-bottom: var(--safe-bottom);
+  box-shadow: 0 -4px 20px rgba(0,0,0,.08);
+  z-index: 100;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 4px; cursor: pointer; border: none; background: none;
+  color: var(--text-muted); font-size: 10px; font-weight: 600;
+  font-family: 'Inter', sans-serif; transition: color .15s;
+}
+.nav-item .nav-icon { font-size: 22px; line-height: 1; }
+.nav-item.active { color: var(--brand); }
+.nav-item.active .nav-icon { transform: scale(1.1); }
+
+/* FAB - center add button */
+.fab-wrap { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding-top: 0; }
+.fab {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--brand); color: #fff;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; line-height: 1;
+  box-shadow: 0 4px 16px rgba(79,70,229,.4);
+  transform: translateY(-12px);
+  transition: transform .15s, box-shadow .15s;
+}
+.fab:active { transform: translateY(-10px) scale(.95); box-shadow: 0 2px 8px rgba(79,70,229,.3); }
 
 /* ===================== CARDS ===================== */
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 16px;
   box-shadow: var(--shadow-sm);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 .card-title {
-  font-size: 13px; font-weight: 700; text-transform: uppercase;
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
   letter-spacing: .8px; color: var(--text-secondary);
-  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
 }
 
 /* ===================== FORM ===================== */
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .form-full { grid-column: 1 / -1; }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
 .form-group label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 .form-group input, .form-group select, .form-group textarea {
-  padding: 9px 12px; border-radius: var(--radius-sm);
+  padding: 10px 12px; border-radius: var(--radius-sm);
   border: 1.5px solid var(--border);
   background: var(--bg-input);
   color: var(--text-primary);
-  font-size: 13px; font-family: 'Inter', sans-serif;
+  font-size: 14px; font-family: 'Inter', sans-serif;
   transition: border-color .15s, box-shadow .15s;
   outline: none;
+  -webkit-appearance: none;
 }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
   border-color: var(--border-focus);
@@ -169,29 +184,23 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 /* ===================== BUTTONS ===================== */
 .btn {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 9px 16px; border-radius: var(--radius-sm);
-  font-size: 13px; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 16px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600; cursor: pointer;
   border: none; transition: all .15s; text-decoration: none;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', sans-serif; white-space: nowrap;
 }
 .btn-primary { background: var(--brand); color: #fff; }
-.btn-primary:hover { background: var(--brand-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn-primary:active { background: var(--brand-dark); }
 .btn-success { background: var(--success); color: #fff; }
-.btn-success:hover { opacity: .9; }
-.btn-outline {
-  background: transparent; color: var(--text-primary);
-  border: 1.5px solid var(--border);
-}
-.btn-outline:hover { background: var(--bg); border-color: var(--brand); color: var(--brand); }
+.btn-outline { background: transparent; color: var(--text-primary); border: 1.5px solid var(--border); }
+.btn-outline:active { background: var(--bg); border-color: var(--brand); color: var(--brand); }
 .btn-ghost { background: transparent; color: var(--text-secondary); padding: 8px 10px; }
-.btn-ghost:hover { background: var(--bg); color: var(--text-primary); }
 .btn-danger { background: var(--danger); color: #fff; }
-.btn-danger:hover { opacity: .9; }
 .btn-wa { background: #25D366; color: #fff; }
-.btn-wa:hover { background: #1ebe5d; }
-.btn-sm { padding: 6px 11px; font-size: 12px; }
+.btn-sm { padding: 7px 12px; font-size: 13px; }
 .btn-icon { padding: 8px; width: 36px; height: 36px; justify-content: center; }
+.btn-block { width: 100%; justify-content: center; padding: 14px; font-size: 15px; }
 
 /* ===================== BADGE ===================== */
 .badge {
@@ -205,187 +214,182 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .badge-danger { background: #FEF2F2; color: var(--danger); }
 
 /* ===================== SIZE GRID ===================== */
+/* Size group wrapper */
+.size-group { margin-bottom: 14px; }
+.size-group-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--text-muted);
+  margin-bottom: 8px; padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
 .size-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 8px;
-  margin-top: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
 }
 .size-item {
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 8px;
+  padding: 7px 4px 6px;
   cursor: pointer;
   transition: all .15s;
   text-align: center;
+  background: var(--bg-card);
 }
-.size-item:hover { border-color: var(--brand); background: var(--brand-light); }
+.size-item:active { transform: scale(.96); }
 .size-item.selected { border-color: var(--brand); background: var(--brand-light); }
-.size-item .size-label { font-size: 13px; font-weight: 700; color: var(--text-primary); }
-.size-item .size-price { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+.size-item .size-label { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+.size-item .size-price { font-size: 9px; color: var(--text-secondary); margin-top: 1px; }
 .size-item .size-qty {
-  width: 100%; margin-top: 6px; text-align: center;
+  width: 100%; margin-top: 5px; text-align: center;
   border: 1px solid var(--border); border-radius: 4px;
-  padding: 4px; font-size: 12px; background: var(--bg-input); color: var(--text-primary);
+  padding: 4px 2px; font-size: 13px; background: var(--bg-input); color: var(--text-primary);
+  outline: none;
 }
+.size-item .size-qty:focus { border-color: var(--border-focus); }
 
 /* ===================== HPP CALC DISPLAY ===================== */
 .hpp-box {
   background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
   border-radius: var(--radius-md);
-  padding: 16px;
+  padding: 14px;
   color: #fff;
   margin-top: 12px;
 }
 [data-theme="dark"] .hpp-box { background: linear-gradient(135deg, #0F0A2E 0%, #1E1B4B 100%); }
-.hpp-box-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: .6; margin-bottom: 10px; }
-.hpp-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
+.hpp-box-title { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: .6; margin-bottom: 8px; }
+.hpp-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
 .hpp-row .label { font-size: 12px; opacity: .75; }
-.hpp-row .value { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; }
-.hpp-divider { border: none; border-top: 1px solid rgba(255,255,255,.15); margin: 6px 0; }
-.hpp-total .value { font-size: 16px; color: #FBBF24; }
+.hpp-row .value { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; }
+.hpp-divider { border: none; border-top: 1px solid rgba(255,255,255,.15); margin: 5px 0; }
+.hpp-total .value { font-size: 15px; color: #FBBF24; }
 .hpp-margin { color: #34D399; font-size: 12px; font-weight: 700; text-align: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.15); }
 
-/* ===================== INVOICE PRINT ===================== */
+/* ===================== INVOICE PREVIEW ===================== */
 .invoice-preview {
-  background: #fff;
-  border-radius: var(--radius-md);
-  padding: 20px;
-  border: 2px solid var(--border);
-  font-family: 'Inter', sans-serif;
-  color: #000;
-  font-size: 13px;
+  background: #fff; border-radius: var(--radius-md);
+  padding: 16px; border: 2px solid var(--border);
+  font-family: 'Inter', sans-serif; color: #000; font-size: 12px;
 }
-.inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-.inv-shop-name { font-size: 18px; font-weight: 800; color: #1E1B4B; }
-.inv-shop-sub { font-size: 11px; color: #64748B; margin-top: 2px; }
-.inv-no { font-size: 11px; background: #EEF2FF; color: #4F46E5; padding: 3px 8px; border-radius: 4px; font-weight: 700; }
-.inv-divider { border: none; border-top: 2px solid #1E1B4B; margin: 12px 0; }
-.inv-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+.inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.inv-shop-name { font-size: 16px; font-weight: 800; color: #1E1B4B; }
+.inv-shop-sub { font-size: 10px; color: #64748B; margin-top: 2px; }
+.inv-no { font-size: 10px; background: #EEF2FF; color: #4F46E5; padding: 3px 7px; border-radius: 4px; font-weight: 700; }
+.inv-divider { border: none; border-top: 2px solid #1E1B4B; margin: 10px 0; }
+.inv-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; }
 .inv-row .k { color: #64748B; }
 .inv-row .v { font-weight: 600; color: #0F172A; }
-.inv-section-title { font-size: 10px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: #94A3B8; margin: 12px 0 6px; }
-.inv-size-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.inv-size-table th { text-align: left; padding: 5px 6px; background: #F8FAFC; font-size: 10px; font-weight: 700; color: #64748B; border-bottom: 1px solid #E2E8F0; }
-.inv-size-table td { padding: 5px 6px; border-bottom: 1px solid #F1F5F9; }
-.inv-total-box { background: #1E1B4B; color: #fff; border-radius: 8px; padding: 12px; margin-top: 14px; display: flex; justify-content: space-between; align-items: center; }
-.inv-total-label { font-size: 11px; opacity: .7; }
-.inv-total-value { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; }
-.inv-footer { text-align: center; margin-top: 14px; font-size: 10px; color: #94A3B8; }
-.inv-notes { background: #FFFBEB; border-left: 3px solid #F59E0B; padding: 8px; border-radius: 4px; font-size: 11px; color: #78350F; margin-top: 8px; }
+.inv-section-title { font-size: 9px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: #94A3B8; margin: 10px 0 5px; }
+.inv-size-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.inv-size-table th { text-align: left; padding: 4px 5px; background: #F8FAFC; font-size: 9px; font-weight: 700; color: #64748B; border-bottom: 1px solid #E2E8F0; }
+.inv-size-table td { padding: 4px 5px; border-bottom: 1px solid #F1F5F9; }
+.inv-total-box { background: #1E1B4B; color: #fff; border-radius: 7px; padding: 10px 12px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+.inv-total-label { font-size: 10px; opacity: .7; }
+.inv-total-value { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; }
+.inv-footer { text-align: center; margin-top: 12px; font-size: 10px; color: #94A3B8; }
+.inv-notes { background: #FFFBEB; border-left: 3px solid #F59E0B; padding: 7px; border-radius: 4px; font-size: 11px; color: #78350F; margin-top: 7px; }
 
 /* THERMAL INVOICE */
 .thermal-preview {
-  background: #fff;
-  width: 300px;
-  margin: 0 auto;
-  padding: 14px 10px;
-  font-family: 'JetBrains Mono', monospace;
-  color: #000;
-  font-size: 11px;
-  border: 1px dashed #ccc;
-  border-radius: 4px;
+  background: #fff; width: 100%; margin: 0 auto;
+  padding: 12px 10px; font-family: 'JetBrains Mono', monospace;
+  color: #000; font-size: 11px; border: 1px dashed #ccc; border-radius: 4px;
 }
-.thermal-preview .shop-name { font-size: 14px; font-weight: 700; text-align: center; }
+.thermal-preview .shop-name { font-size: 13px; font-weight: 700; text-align: center; }
 .thermal-preview .divider-char { text-align: center; color: #999; letter-spacing: -1px; font-size: 10px; }
 .thermal-preview .th-row { display: flex; justify-content: space-between; }
 .thermal-preview .th-section { font-weight: 700; margin-top: 6px; font-size: 11px; }
-.thermal-preview .th-total { display: flex; justify-content: space-between; font-weight: 700; font-size: 13px; border-top: 1px dashed #000; margin-top: 6px; padding-top: 6px; }
-.thermal-preview .th-footer { text-align: center; margin-top: 10px; font-size: 9px; color: #666; }
+.thermal-preview .th-total { display: flex; justify-content: space-between; font-weight: 700; font-size: 12px; border-top: 1px dashed #000; margin-top: 6px; padding-top: 6px; }
+.thermal-preview .th-footer { text-align: center; margin-top: 8px; font-size: 9px; color: #666; }
 
 /* ===================== DASHBOARD ===================== */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
-.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-sm); }
-.stat-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 12px; }
-.stat-value { font-size: 22px; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--text-primary); }
-.stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
-.stat-change { font-size: 11px; font-weight: 600; margin-top: 6px; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; box-shadow: var(--shadow-sm); }
+.stat-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+.stat-value { font-size: 18px; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--text-primary); }
+.stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.stat-change { font-size: 11px; font-weight: 600; margin-top: 4px; }
 .stat-up { color: var(--success); }
 .stat-down { color: var(--danger); }
 
-/* CHART */
-.chart-container { position: relative; height: 160px; display: flex; align-items: flex-end; gap: 6px; }
-.bar-group { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 4px; }
-.bar-wrap { flex: 1; display: flex; align-items: flex-end; width: 100%; }
-.bar { width: 100%; background: var(--brand); border-radius: 4px 4px 0 0; transition: all .3s; min-height: 4px; opacity: .85; }
-.bar:hover { opacity: 1; }
-.bar-label { font-size: 10px; color: var(--text-muted); font-weight: 500; }
-.bar-val { font-size: 9px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
-.chart-y-axis { display: flex; flex-direction: column; justify-content: space-between; height: 160px; padding: 0 8px 20px 0; }
-.chart-y-label { font-size: 9px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+/* ===================== TABS ===================== */
+.tabs { display: flex; gap: 4px; background: var(--bg); padding: 4px; border-radius: var(--radius-md); margin-bottom: 14px; }
+.tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: var(--radius-sm); color: var(--text-secondary); border: none; background: none; transition: all .15s; font-family: 'Inter', sans-serif; }
+.tab.active { background: var(--bg-card); color: var(--brand); box-shadow: var(--shadow-sm); }
 
-/* HISTORY TABLE */
-.table-wrap { overflow-x: auto; }
-table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.data-table th { text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: .5px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
-.data-table td { padding: 11px 12px; border-bottom: 1px solid var(--border); }
-.data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: var(--bg); }
+/* ===================== HISTORY TABLE (mobile card style) ===================== */
+.order-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; cursor: pointer; transition: all .15s; box-shadow: var(--shadow-sm); }
+.order-card:active { transform: scale(.99); }
+.order-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.order-card-bottom { display: flex; align-items: center; justify-content: space-between; }
 
 /* ===================== MODAL ===================== */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
-  z-index: 1000; display: flex; align-items: center; justify-content: center;
+  z-index: 1000; display: flex; align-items: flex-end; justify-content: center;
   opacity: 0; pointer-events: none; transition: opacity .2s;
 }
 .modal-overlay.open { opacity: 1; pointer-events: all; }
 .modal {
-  background: var(--bg-card); border-radius: var(--radius-lg);
-  padding: 24px; width: 90%; max-width: 560px; max-height: 90vh;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 20px 20px calc(20px + var(--safe-bottom));
+  width: 100%; max-width: 600px;
+  max-height: 92dvh; max-height: 92vh;
   overflow-y: auto; box-shadow: var(--shadow-lg);
-  transform: translateY(20px); transition: transform .2s;
+  transform: translateY(40px); transition: transform .25s cubic-bezier(.32,0,.67,0);
 }
 .modal-overlay.open .modal { transform: translateY(0); }
-.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .modal-title { font-size: 16px; font-weight: 700; }
 
 /* ===================== TOGGLE THEME ===================== */
 .theme-toggle {
-  width: 44px; height: 24px; background: var(--border);
+  width: 42px; height: 23px; background: var(--border);
   border-radius: 12px; position: relative; cursor: pointer; border: none;
-  transition: background .2s;
+  transition: background .2s; flex-shrink: 0;
 }
 .theme-toggle.on { background: var(--brand); }
 .theme-toggle::after {
   content: ''; position: absolute; top: 3px; left: 3px;
-  width: 18px; height: 18px; border-radius: 50%; background: #fff;
+  width: 17px; height: 17px; border-radius: 50%; background: #fff;
   transition: left .2s; box-shadow: 0 1px 4px rgba(0,0,0,.2);
 }
-.theme-toggle.on::after { left: 23px; }
-
-/* ===================== TABS ===================== */
-.tabs { display: flex; gap: 4px; background: var(--bg); padding: 4px; border-radius: var(--radius-md); margin-bottom: 16px; }
-.tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: var(--radius-sm); color: var(--text-secondary); border: none; background: none; transition: all .15s; }
-.tab.active { background: var(--bg-card); color: var(--brand); box-shadow: var(--shadow-sm); }
+.theme-toggle.on::after { left: 22px; }
 
 /* ===================== TOAST ===================== */
 .toast {
-  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-  background: #1E1B4B; color: #fff; padding: 12px 18px; border-radius: var(--radius-md);
+  position: fixed; bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 12px); left: 50%;
+  transform: translateX(-50%) translateY(80px); opacity: 0;
+  z-index: 9999; background: #1E1B4B; color: #fff;
+  padding: 11px 20px; border-radius: 99px;
   font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
-  transform: translateY(100px); opacity: 0; transition: all .25s;
-  display: flex; align-items: center; gap: 10px;
+  transition: all .25s; white-space: nowrap;
 }
-.toast.show { transform: translateY(0); opacity: 1; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-/* ===================== RESPONSIVE ===================== */
-@media (max-width: 768px) {
-  .sidebar { width: 60px; }
-  .logo-text, .logo-sub, .nav-item span:not(.nav-icon) { display: none; }
-  .nav-item { justify-content: center; }
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-  .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
+/* Print type selector */
+.print-type-btns { display: flex; gap: 8px; margin-bottom: 14px; }
+.print-type-btn {
+  flex: 1; padding: 10px 6px; border-radius: var(--radius-sm); cursor: pointer;
+  border: 2px solid var(--border); background: var(--bg-card);
+  text-align: center; font-size: 12px; font-weight: 600;
+  color: var(--text-secondary); transition: all .15s;
 }
+.print-type-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
+.print-type-btn .pt-icon { font-size: 20px; display: block; margin-bottom: 4px; }
 
-/* ===================== PRINT ===================== */
-@media print {
-  .sidebar, .topbar, .topbar-actions, .content > *:not(.print-target) { display: none !important; }
-  .print-target { display: block !important; }
-  body { background: white; }
-}
+/* Cashflow */
+.cf-in { color: var(--success); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.cf-out { color: var(--danger); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+/* Progress bar */
+.progress-bar-wrap { background: rgba(255,255,255,.2); border-radius: 99px; height: 5px; overflow: hidden; margin-top: 6px; }
+.progress-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #818CF8, #FBBF24); transition: width .4s; }
 
 /* ===================== MISC ===================== */
-.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .section-title { font-size: 18px; font-weight: 800; }
 .mono { font-family: 'JetBrains Mono', monospace; }
 .text-right { text-align: right; }
@@ -403,294 +407,277 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .gap-8 { gap: 8px; }
 .gap-12 { gap: 12px; }
 .flex-1 { flex: 1; }
-.empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
-.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state { text-align: center; padding: 40px 16px; color: var(--text-muted); }
+.empty-state .empty-icon { font-size: 44px; margin-bottom: 10px; }
 .empty-state p { font-size: 14px; }
 
-/* DEADLINE BADGE */
+/* Deadline */
 .deadline-urgent { color: var(--danger); font-weight: 700; }
 .deadline-soon { color: var(--accent); font-weight: 600; }
 .deadline-ok { color: var(--success); }
 
-/* Print type selector */
-.print-type-btns { display: flex; gap: 8px; margin-bottom: 16px; }
-.print-type-btn {
-  flex: 1; padding: 10px; border-radius: var(--radius-sm); cursor: pointer;
-  border: 2px solid var(--border); background: var(--bg-card);
-  text-align: center; font-size: 12px; font-weight: 600;
-  color: var(--text-secondary); transition: all .15s;
+/* Search */
+.search-bar {
+  width: 100%; padding: 10px 14px; border-radius: var(--radius-md);
+  border: 1.5px solid var(--border); background: var(--bg-input);
+  color: var(--text-primary); font-size: 14px; outline: none;
+  font-family: 'Inter', sans-serif; margin-bottom: 12px;
 }
-.print-type-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
-.print-type-btn .pt-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+.search-bar:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(79,70,229,.1); }
 
-/* Cashflow */
-.cf-in { color: var(--success); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-.cf-out { color: var(--danger); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+/* Table wrap for cashflow on mobile */
+.cf-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 10px; }
+.cf-item:last-child { border-bottom: none; }
 
-/* Progress bar */
-.progress-bar-wrap { background: var(--border); border-radius: 99px; height: 6px; overflow: hidden; margin-top: 4px; }
-.progress-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--brand), var(--accent)); transition: width .4s; }
+/* ===================== PRINT ===================== */
+@media print {
+  .bottom-nav, .topbar, .topbar-actions { display: none !important; }
+  body { background: white; }
+  .content { padding: 0; }
+}
 </style>
 </head>
 <body>
 
 <div class="app">
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-mark">
-        <div class="logo-icon">🖨️</div>
-        <div>
-          <div class="logo-text">SablonPro</div>
-          <div class="logo-sub">Kalkulator HPP</div>
-        </div>
-      </div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-label">Menu</div>
-      <button class="nav-item active" onclick="navigate('dashboard')">
-        <span class="nav-icon">📊</span><span>Dashboard</span>
-      </button>
-      <button class="nav-item" onclick="navigate('order')">
-        <span class="nav-icon">➕</span><span>Order Baru</span>
-      </button>
-      <button class="nav-item" onclick="navigate('history')">
-        <span class="nav-icon">📋</span><span>Riwayat Order</span>
-      </button>
-      <button class="nav-item" onclick="navigate('cashflow')">
-        <span class="nav-icon">💰</span><span>Keuangan</span>
-      </button>
-      <div class="nav-label" style="margin-top:12px">Pengaturan</div>
-      <button class="nav-item" onclick="openSettingsModal()">
-        <span class="nav-icon">⚙️</span><span>Toko</span>
-      </button>
-    </nav>
-  </aside>
-
-  <!-- MAIN -->
-  <div class="main">
-    <!-- TOPBAR -->
-    <div class="topbar">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo-icon">🖨️</div>
       <div class="topbar-title" id="topbar-title">Dashboard</div>
-      <div class="topbar-actions">
-        <span style="font-size:12px; color:var(--text-muted)">☀️</span>
-        <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"></button>
-        <span style="font-size:12px; color:var(--text-muted)">🌙</span>
+    </div>
+    <div class="topbar-actions">
+      <span style="font-size:12px;color:var(--text-muted)">☀️</span>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"></button>
+      <span style="font-size:12px;color:var(--text-muted)">🌙</span>
+      <button class="btn btn-ghost btn-icon" style="font-size:18px" onclick="openSettingsModal()">⚙️</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div id="page-dashboard" class="page active">
+      <div class="section-header">
+        <div class="section-title">Dashboard</div>
+        <div class="tabs" style="margin-bottom:0;width:auto">
+          <button class="tab active" onclick="setDashTab('week',this)">Minggu</button>
+          <button class="tab" onclick="setDashTab('month',this)">Bulan</button>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="stats-grid"></div>
+
+      <div class="card">
+        <div class="card-title">📈 Tren Omzet</div>
+        <div id="chart-area"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔥 Order Terbaru</div>
+        <div id="recent-orders"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📅 Deadline Mendekati</div>
+        <div id="deadline-list"></div>
       </div>
     </div>
 
-    <!-- CONTENT -->
-    <div class="content">
-
-      <!-- ===== DASHBOARD ===== -->
-      <div id="page-dashboard" class="page active">
-        <div class="section-header">
-          <div class="section-title">Dashboard</div>
-          <div class="flex gap-8">
-            <div class="tabs" style="margin-bottom:0">
-              <button class="tab active" onclick="setDashTab('week',this)">Minggu Ini</button>
-              <button class="tab" onclick="setDashTab('month',this)">Bulan Ini</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="stats-grid" id="stats-grid"></div>
-
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px">
-          <div class="card">
-            <div class="card-title">📈 Tren Omzet</div>
-            <div id="chart-area"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">🔥 Order Terbaru</div>
-            <div id="recent-orders"></div>
-          </div>
-        </div>
-
-        <div class="card mt-16">
-          <div class="card-title">📅 Deadline Mendekati</div>
-          <div id="deadline-list"></div>
-        </div>
+    <!-- ===== ORDER BARU ===== -->
+    <div id="page-order" class="page">
+      <div class="section-header">
+        <div class="section-title">Order Baru</div>
+        <button class="btn btn-outline btn-sm" onclick="clearForm()">🔄 Reset</button>
       </div>
 
-      <!-- ===== ORDER BARU ===== -->
-      <div id="page-order" class="page">
-        <div class="section-header">
-          <div class="section-title">Order Baru</div>
-          <div class="flex gap-8">
-            <button class="btn btn-outline btn-sm" onclick="clearForm()">🔄 Reset</button>
+      <!-- INFO PELANGGAN -->
+      <div class="card">
+        <div class="card-title">👤 Info Pelanggan</div>
+        <div class="form-grid">
+          <div class="form-group form-full">
+            <label>Nama Pelanggan *</label>
+            <input type="text" id="f-customer" placeholder="Nama lengkap...">
           </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns: 1fr 380px; gap:16px; align-items:start">
-          <div>
-            <!-- INFO PELANGGAN -->
-            <div class="card">
-              <div class="card-title">👤 Info Pelanggan</div>
-              <div class="form-grid">
-                <div class="form-group">
-                  <label>Nama Pelanggan *</label>
-                  <input type="text" id="f-customer" placeholder="Nama lengkap...">
-                </div>
-                <div class="form-group">
-                  <label>Nomor HP / WA</label>
-                  <input type="text" id="f-phone" placeholder="08xx...">
-                </div>
-                <div class="form-group form-full">
-                  <label>Alamat</label>
-                  <input type="text" id="f-address" placeholder="Alamat pengiriman...">
-                </div>
-              </div>
-            </div>
-
-            <!-- PRODUK -->
-            <div class="card">
-              <div class="card-title">👕 Detail Produk</div>
-              <div class="form-grid">
-                <div class="form-group">
-                  <label>Nama Produk / Desain *</label>
-                  <input type="text" id="f-product" placeholder="Contoh: Kaos Event HUT RI">
-                </div>
-                <div class="form-group">
-                  <label>Model Produk</label>
-                  <select id="f-model">
-                    <option value="Kaos">👕 Kaos</option>
-                    <option value="Jaket">🧥 Jaket</option>
-                    <option value="Workshirt">👔 Workshirt</option>
-                    <option value="Celana">👖 Celana</option>
-                    <option value="PDH">🏛️ PDH</option>
-                    <option value="Topi">🧢 Topi</option>
-                    <option value="Totebag">👜 Totebag</option>
-                    <option value="Lainnya">📦 Lainnya</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Harga Dasar per pcs (Rp)</label>
-                  <input type="number" id="f-base-price" placeholder="75000" oninput="recalculate()">
-                </div>
-                <div class="form-group">
-                  <label>Deadline Produksi</label>
-                  <input type="date" id="f-deadline">
-                </div>
-              </div>
-
-              <!-- SIZE GRID -->
-              <div class="mt-12">
-                <div class="card-title" style="margin-bottom:8px">📐 Pilih Size & Jumlah</div>
-                <div class="size-grid" id="size-grid"></div>
-              </div>
-            </div>
-
-            <!-- HPP -->
-            <div class="card">
-              <div class="card-title">🧮 Komponen HPP Produksi</div>
-              <div class="form-grid-3">
-                <div class="form-group">
-                  <label>Bahan (Rp/pcs)</label>
-                  <input type="number" id="f-bahan" placeholder="Auto" oninput="recalculate()">
-                </div>
-                <div class="form-group">
-                  <label>Sablon (Rp/pcs)</label>
-                  <input type="number" id="f-sablon" placeholder="Auto" oninput="recalculate()">
-                </div>
-                <div class="form-group">
-                  <label>Afdruk (Rp/pcs)</label>
-                  <input type="number" id="f-afdruk" placeholder="Jika ada" oninput="recalculate()">
-                </div>
-              </div>
-              <div class="form-group mt-8">
-                <label>Jahit (Rp/pcs) — otomatis jika Afdruk kosong</label>
-                <input type="number" id="f-jahit" placeholder="Auto" oninput="recalculate()">
-              </div>
-              <div id="hpp-result"></div>
-            </div>
-
-            <!-- CATATAN -->
-            <div class="card">
-              <div class="card-title">📝 Catatan Produksi</div>
-              <div class="form-group">
-                <textarea id="f-notes" placeholder="Catatan khusus untuk tim produksi, warna sablon, bahan, dsb..."></textarea>
-              </div>
-              <div class="form-group mt-8">
-                <label>Status Pembayaran</label>
-                <select id="f-payment-status">
-                  <option value="Belum Bayar">⏳ Belum Bayar</option>
-                  <option value="DP">💳 DP</option>
-                  <option value="Lunas">✅ Lunas</option>
-                </select>
-              </div>
-              <div class="form-group mt-8" id="dp-group" style="display:none">
-                <label>Jumlah DP (Rp)</label>
-                <input type="number" id="f-dp" placeholder="0">
-              </div>
-            </div>
-
-            <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px" onclick="saveOrder()">
-              💾 Simpan Order
-            </button>
+          <div class="form-group">
+            <label>Nomor WA</label>
+            <input type="tel" id="f-phone" placeholder="08xx...">
           </div>
-
-          <!-- INVOICE PREVIEW -->
-          <div style="position:sticky;top:0">
-            <div class="card">
-              <div class="card-title">👁️ Preview Invoice</div>
-              <div class="print-type-btns">
-                <div class="print-type-btn active" onclick="setPrintType('a4',this)">
-                  <span class="pt-icon">📄</span>A4 / HVS
-                </div>
-                <div class="print-type-btn" onclick="setPrintType('thermal',this)">
-                  <span class="pt-icon">🧾</span>Thermal 80mm
-                </div>
-              </div>
-              <div id="invoice-preview-area"></div>
-              <div class="flex gap-8 mt-12">
-                <button class="btn btn-outline btn-sm flex-1" onclick="printInvoice()">🖨️ Print</button>
-                <button class="btn btn-wa btn-sm flex-1" onclick="copyToWA()">📲 WhatsApp</button>
-              </div>
-            </div>
+          <div class="form-group">
+            <label>Deadline</label>
+            <input type="date" id="f-deadline">
+          </div>
+          <div class="form-group form-full">
+            <label>Alamat</label>
+            <input type="text" id="f-address" placeholder="Alamat pengiriman...">
           </div>
         </div>
       </div>
 
-      <!-- ===== HISTORY ===== -->
-      <div id="page-history" class="page">
-        <div class="section-header">
-          <div class="section-title">Riwayat Order</div>
-          <div class="flex gap-8">
-            <input type="text" placeholder="🔍 Cari..." id="search-history" oninput="renderHistory()" style="padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg-input);color:var(--text-primary);font-size:13px;outline:none;width:200px">
-            <select id="filter-status" onchange="renderHistory()" style="padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg-input);color:var(--text-primary);font-size:13px;outline:none">
-              <option value="">Semua Status</option>
-              <option value="Belum Bayar">Belum Bayar</option>
-              <option value="DP">DP</option>
-              <option value="Lunas">Lunas</option>
+      <!-- PRODUK -->
+      <div class="card">
+        <div class="card-title">👕 Detail Produk</div>
+        <div class="form-grid">
+          <div class="form-group form-full">
+            <label>Nama Produk / Desain *</label>
+            <input type="text" id="f-product" placeholder="Contoh: Kaos Event HUT RI">
+          </div>
+          <div class="form-group">
+            <label>Model Produk</label>
+            <select id="f-model">
+              <option value="Kaos">👕 Kaos</option>
+              <option value="Jaket">🧥 Jaket</option>
+              <option value="Workshirt">👔 Workshirt</option>
+              <option value="Celana">👖 Celana</option>
+              <option value="PDH">🏛️ PDH</option>
+              <option value="Topi">🧢 Topi</option>
+              <option value="Totebag">👜 Totebag</option>
+              <option value="Lainnya">📦 Lainnya</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>Harga Dasar/pcs (Rp)</label>
+            <input type="number" inputmode="numeric" id="f-base-price" placeholder="75000" oninput="recalculate()">
+          </div>
         </div>
-        <div class="card">
-          <div class="table-wrap" id="history-table-wrap"></div>
+
+        <!-- SIZE GRID -->
+        <div class="mt-12">
+          <div class="card-title" style="margin-bottom:8px">📐 Pilih Size & Jumlah</div>
+          <div id="size-grid-container"></div>
         </div>
       </div>
 
-      <!-- ===== CASHFLOW ===== -->
-      <div id="page-cashflow" class="page">
-        <div class="section-header">
-          <div class="section-title">Keuangan</div>
-          <button class="btn btn-primary btn-sm" onclick="openAddCashflow()">+ Tambah Transaksi</button>
+      <!-- HPP -->
+      <div class="card">
+        <div class="card-title">🧮 Komponen HPP Produksi</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Bahan (Rp/pcs)</label>
+            <input type="number" inputmode="numeric" id="f-bahan" placeholder="Auto" oninput="recalculate()">
+          </div>
+          <div class="form-group">
+            <label>Sablon (Rp/pcs)</label>
+            <input type="number" inputmode="numeric" id="f-sablon" placeholder="Auto" oninput="recalculate()">
+          </div>
+          <div class="form-group">
+            <label>Afdruk (Rp/pcs)</label>
+            <input type="number" inputmode="numeric" id="f-afdruk" placeholder="Jika ada" oninput="recalculate()">
+          </div>
+          <div class="form-group">
+            <label>Jahit (Rp/pcs)</label>
+            <input type="number" inputmode="numeric" id="f-jahit" placeholder="Auto" oninput="recalculate()">
+          </div>
         </div>
-        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)" id="cf-stats"></div>
-        <div class="card">
-          <div class="card-title">💳 Riwayat Transaksi</div>
-          <div id="cashflow-table"></div>
+        <div id="hpp-result"></div>
+      </div>
+
+      <!-- CATATAN & PAYMENT -->
+      <div class="card">
+        <div class="card-title">📝 Catatan & Pembayaran</div>
+        <div class="form-group">
+          <label>Catatan Produksi</label>
+          <textarea id="f-notes" placeholder="Warna sablon, bahan, catatan tim produksi..."></textarea>
+        </div>
+        <div class="form-grid mt-8">
+          <div class="form-group">
+            <label>Status Pembayaran</label>
+            <select id="f-payment-status">
+              <option value="Belum Bayar">⏳ Belum Bayar</option>
+              <option value="DP">💳 DP</option>
+              <option value="Lunas">✅ Lunas</option>
+            </select>
+          </div>
+          <div class="form-group" id="dp-group" style="display:none">
+            <label>Jumlah DP (Rp)</label>
+            <input type="number" inputmode="numeric" id="f-dp" placeholder="0">
+          </div>
         </div>
       </div>
 
-    </div><!-- /content -->
-  </div><!-- /main -->
+      <!-- INVOICE PREVIEW -->
+      <div class="card">
+        <div class="card-title">👁️ Preview Invoice</div>
+        <div class="print-type-btns">
+          <div class="print-type-btn active" onclick="setPrintType('a4',this)">
+            <span class="pt-icon">📄</span>A4 / HVS
+          </div>
+          <div class="print-type-btn" onclick="setPrintType('thermal',this)">
+            <span class="pt-icon">🧾</span>Thermal 80mm
+          </div>
+        </div>
+        <div id="invoice-preview-area"></div>
+        <div class="flex gap-8 mt-12">
+          <button class="btn btn-outline btn-sm flex-1" onclick="printInvoice()">🖨️ Print</button>
+          <button class="btn btn-wa btn-sm flex-1" onclick="copyToWA()">📲 WhatsApp</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" onclick="saveOrder()">
+        💾 Simpan Order
+      </button>
+      <div style="height:8px"></div>
+    </div>
+
+    <!-- ===== HISTORY ===== -->
+    <div id="page-history" class="page">
+      <div class="section-header">
+        <div class="section-title">Riwayat Order</div>
+        <select id="filter-status" onchange="renderHistory()" style="padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg-input);color:var(--text-primary);font-size:13px;outline:none;-webkit-appearance:none">
+          <option value="">Semua</option>
+          <option value="Belum Bayar">Belum Bayar</option>
+          <option value="DP">DP</option>
+          <option value="Lunas">Lunas</option>
+        </select>
+      </div>
+      <input type="search" class="search-bar" placeholder="🔍 Cari pelanggan, produk, invoice..." id="search-history" oninput="renderHistory()">
+      <div id="history-list"></div>
+    </div>
+
+    <!-- ===== CASHFLOW ===== -->
+    <div id="page-cashflow" class="page">
+      <div class="section-header">
+        <div class="section-title">Keuangan</div>
+        <button class="btn btn-primary btn-sm" onclick="openAddCashflow()">+ Tambah</button>
+      </div>
+      <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr" id="cf-stats"></div>
+      <div class="card">
+        <div class="card-title">💳 Riwayat Transaksi</div>
+        <div id="cashflow-table"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
+      <span class="nav-icon">📊</span>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-item" id="nav-history" onclick="navigate('history')">
+      <span class="nav-icon">📋</span>
+      <span>Riwayat</span>
+    </button>
+    <div class="fab-wrap">
+      <button class="fab" onclick="navigate('order')" title="Order Baru">＋</button>
+    </div>
+    <button class="nav-item" id="nav-cashflow" onclick="navigate('cashflow')">
+      <span class="nav-icon">💰</span>
+      <span>Keuangan</span>
+    </button>
+    <button class="nav-item" onclick="openSettingsModal()">
+      <span class="nav-icon">⚙️</span>
+      <span>Toko</span>
+    </button>
+  </nav>
 </div><!-- /app -->
 
 <!-- SETTINGS MODAL -->
 <div class="modal-overlay" id="settings-modal">
   <div class="modal">
+    <div class="modal-handle"></div>
     <div class="modal-header">
       <div class="modal-title">⚙️ Pengaturan Toko</div>
       <button class="btn btn-ghost btn-icon" onclick="closeModal('settings-modal')">✕</button>
@@ -706,7 +693,7 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
       </div>
       <div class="form-group">
         <label>Nomor HP / WA</label>
-        <input type="text" id="s-phone" placeholder="08xx...">
+        <input type="tel" id="s-phone" placeholder="08xx...">
       </div>
       <div class="form-group form-full">
         <label>Alamat Toko</label>
@@ -718,35 +705,37 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
       </div>
       <div class="form-group">
         <label>Tagline / Slogan</label>
-        <input type="text" id="s-tagline" placeholder="Kualitas Terbaik, Harga Terjangkau">
+        <input type="text" id="s-tagline" placeholder="Kualitas Terbaik">
       </div>
     </div>
-    <div class="flex gap-8 mt-16" style="justify-content:flex-end">
-      <button class="btn btn-outline" onclick="closeModal('settings-modal')">Batal</button>
-      <button class="btn btn-primary" onclick="saveSettings()">💾 Simpan</button>
+    <div class="flex gap-8 mt-16">
+      <button class="btn btn-outline flex-1" onclick="closeModal('settings-modal')">Batal</button>
+      <button class="btn btn-primary flex-1" onclick="saveSettings()">💾 Simpan</button>
     </div>
   </div>
 </div>
 
 <!-- ORDER DETAIL MODAL -->
 <div class="modal-overlay" id="detail-modal">
-  <div class="modal" style="max-width:640px">
+  <div class="modal">
+    <div class="modal-handle"></div>
     <div class="modal-header">
       <div class="modal-title">📋 Detail Order</div>
       <button class="btn btn-ghost btn-icon" onclick="closeModal('detail-modal')">✕</button>
     </div>
     <div id="detail-modal-body"></div>
-    <div class="flex gap-8 mt-16" style="justify-content:flex-end">
-      <button class="btn btn-outline" onclick="printDetailInvoice()">🖨️ Print</button>
-      <button class="btn btn-wa" onclick="copyDetailWA()">📲 WhatsApp</button>
-      <button class="btn btn-danger btn-sm" id="delete-order-btn">🗑️ Hapus</button>
+    <div class="flex gap-8 mt-16">
+      <button class="btn btn-outline flex-1 btn-sm" onclick="printDetailInvoice()">🖨️ Print</button>
+      <button class="btn btn-wa flex-1 btn-sm" onclick="copyDetailWA()">📲 WA</button>
+      <button class="btn btn-danger btn-sm" id="delete-order-btn">🗑️</button>
     </div>
   </div>
 </div>
 
 <!-- CASHFLOW MODAL -->
 <div class="modal-overlay" id="cashflow-modal">
-  <div class="modal" style="max-width:440px">
+  <div class="modal">
+    <div class="modal-handle"></div>
     <div class="modal-header">
       <div class="modal-title">+ Tambah Transaksi</div>
       <button class="btn btn-ghost btn-icon" onclick="closeModal('cashflow-modal')">✕</button>
@@ -765,7 +754,7 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
       </div>
       <div class="form-group">
         <label>Jumlah (Rp)</label>
-        <input type="number" id="cf-amount" placeholder="0">
+        <input type="number" inputmode="numeric" id="cf-amount" placeholder="0">
       </div>
       <div class="form-group">
         <label>Tanggal</label>
@@ -784,9 +773,9 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         </select>
       </div>
     </div>
-    <div class="flex gap-8 mt-16" style="justify-content:flex-end">
-      <button class="btn btn-outline" onclick="closeModal('cashflow-modal')">Batal</button>
-      <button class="btn btn-primary" onclick="saveCashflow()">💾 Simpan</button>
+    <div class="flex gap-8 mt-16">
+      <button class="btn btn-outline flex-1" onclick="closeModal('cashflow-modal')">Batal</button>
+      <button class="btn btn-primary flex-1" onclick="saveCashflow()">💾 Simpan</button>
     </div>
   </div>
 </div>
@@ -805,18 +794,36 @@ let store = {
   invoiceCounter: 1
 };
 
-const SIZES = [
-  { code: 'S', label: 'S', add: 0 },
-  { code: 'M', label: 'M', add: 0 },
-  { code: 'L', label: 'L', add: 0 },
-  { code: 'XL', label: 'XL', add: 0 },
+// =====================================================
+// SIZE CONFIG
+// Setiap ukuran punya 3 varian: Normal, Panjang, Panjang+Rib
+// =====================================================
+const SIZE_BASE = [
+  { code: 'S',   label: 'S',   add: 0 },
+  { code: 'M',   label: 'M',   add: 0 },
+  { code: 'L',   label: 'L',   add: 0 },
+  { code: 'XL',  label: 'XL',  add: 0 },
   { code: 'XXL', label: 'XXL', add: 10000 },
   { code: '3XL', label: '3XL', add: 15000 },
   { code: '4XL', label: '4XL', add: 20000 },
   { code: '5XL', label: '5XL', add: 25000 },
-  { code: 'Panjang', label: 'Panjang', add: 10000 },
-  { code: 'Panjang+Rib', label: 'Panjang+Rib', add: 15000 },
 ];
+
+// Tambahan harga untuk varian panjang
+const PANJANG_ADD = 10000;
+const PANJANG_RIB_ADD = 15000;
+
+// Generate SIZES: Normal + Panjang + Panjang+Rib untuk tiap ukuran
+function buildSizes() {
+  const result = [];
+  SIZE_BASE.forEach(s => {
+    result.push({ code: s.code,          label: s.label,          add: s.add,                            group: 'Normal',      baseCode: s.code });
+    result.push({ code: s.code+'_P',     label: s.label+'P',      add: s.add + PANJANG_ADD,              group: 'Panjang',     baseCode: s.code });
+    result.push({ code: s.code+'_PR',    label: s.label+'P+R',    add: s.add + PANJANG_RIB_ADD,          group: 'Panjang+Rib', baseCode: s.code });
+  });
+  return result;
+}
+const SIZES = buildSizes();
 
 let currentPrintType = 'a4';
 let currentDetailOrder = null;
@@ -840,15 +847,16 @@ function saveData() {
 const pageTitles = { dashboard: 'Dashboard', order: 'Order Baru', history: 'Riwayat Order', cashflow: 'Keuangan' };
 function navigate(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item[id]').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => {
-    if (n.getAttribute('onclick')?.includes("'" + page + "'")) n.classList.add('active');
-  });
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
   document.getElementById('topbar-title').textContent = pageTitles[page] || page;
   if (page === 'dashboard') renderDashboard();
   if (page === 'history') renderHistory();
   if (page === 'cashflow') renderCashflow();
+  // Scroll top
+  document.querySelector('.content').scrollTo(0, 0);
 }
 
 // ===================================================
@@ -897,26 +905,46 @@ function saveSettings() {
 }
 
 // ===================================================
-// SIZE GRID
+// SIZE GRID — grouped by variant
 // ===================================================
 function renderSizeGrid() {
-  const grid = document.getElementById('size-grid');
-  grid.innerHTML = '';
-  SIZES.forEach(s => {
-    const el = document.createElement('div');
-    el.className = 'size-item';
-    el.id = 'size-' + s.code;
-    el.onclick = () => {
-      el.classList.toggle('selected');
-      recalculate();
-    };
-    el.innerHTML = `
-      <div class="size-label">${s.label}</div>
-      <div class="size-price">${s.add > 0 ? '+' + fmt(s.add) : 'Standar'}</div>
-      <input class="size-qty" type="number" min="0" placeholder="Qty" id="qty-${s.code}"
-        onclick="event.stopPropagation()" oninput="recalculate()">
-    `;
-    grid.appendChild(el);
+  const container = document.getElementById('size-grid-container');
+  container.innerHTML = '';
+
+  const groups = ['Normal', 'Panjang', 'Panjang+Rib'];
+  const groupEmoji = { 'Normal': '📏', 'Panjang': '📐', 'Panjang+Rib': '🧵' };
+  const groupDesc = { 'Normal': 'Standar', 'Panjang': '+Rp10.000/pcs', 'Panjang+Rib': '+Rp15.000/pcs' };
+
+  groups.forEach(groupName => {
+    const groupSizes = SIZES.filter(s => s.group === groupName);
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'size-group';
+
+    wrapper.innerHTML = `<div class="size-group-title">${groupEmoji[groupName]} ${groupName} <span style="font-weight:400;text-transform:none;letter-spacing:0">(${groupDesc[groupName]})</span></div>`;
+
+    const grid = document.createElement('div');
+    grid.className = 'size-grid';
+
+    groupSizes.forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'size-item';
+      el.id = 'size-' + s.code;
+      el.onclick = () => {
+        el.classList.toggle('selected');
+        recalculate();
+      };
+      el.innerHTML = `
+        <div class="size-label">${s.baseCode}</div>
+        <div class="size-price">${s.add > 0 ? '+'+fmt(s.add) : 'Std'}</div>
+        <input class="size-qty" type="number" inputmode="numeric" min="0" placeholder="Qty" id="qty-${s.code}"
+          onclick="event.stopPropagation()" oninput="recalculate()">
+      `;
+      grid.appendChild(el);
+    });
+
+    wrapper.appendChild(grid);
+    container.appendChild(wrapper);
   });
 }
 
@@ -966,8 +994,8 @@ function recalculate() {
         <div class="hpp-box-title">HPP Produksi — Tidak tampil di invoice</div>
         <div class="hpp-row"><span class="label">Bahan (50%)</span><span class="value">${fmtRp(calcBahan)}/pcs</span></div>
         <div class="hpp-row"><span class="label">Sablon (40%)</span><span class="value">${fmtRp(calcSablon)}/pcs</span></div>
-        <div class="hpp-row"><span class="label">Afdruk (10%)</span><span class="value">${fmtRp(calcAfdruk)}/pcs</span></div>
-        <div class="hpp-row"><span class="label">Jahit${calcAfdruk === 0 ? ' (10% — afdruk kosong)' : ''}</span><span class="value">${fmtRp(calcJahit)}/pcs</span></div>
+        <div class="hpp-row"><span class="label">Afdruk</span><span class="value">${fmtRp(calcAfdruk)}/pcs</span></div>
+        <div class="hpp-row"><span class="label">Jahit${calcAfdruk === 0 ? ' (10%)' : ''}</span><span class="value">${fmtRp(calcJahit)}/pcs</span></div>
         <hr class="hpp-divider">
         <div class="hpp-row hpp-total">
           <span class="label">HPP per pcs</span>
@@ -983,13 +1011,12 @@ function recalculate() {
         </div>
         <div class="hpp-margin">
           ${margin >= 0 ? '📈' : '📉'} Margin: ${margin.toFixed(1)}% | Profit: ${fmtRp(profit)}
-          <div class="progress-bar-wrap mt-8" style="margin-top:8px"><div class="progress-bar-fill" style="width:${Math.min(Math.max(margin,0),100)}%"></div></div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${Math.min(Math.max(margin,0),100)}%"></div></div>
         </div>
       </div>
     `;
   }
 
-  // Payment toggle
   const ps = document.getElementById('f-payment-status');
   const dpGroup = document.getElementById('dp-group');
   if (ps && dpGroup) dpGroup.style.display = ps.value === 'DP' ? 'flex' : 'none';
@@ -1034,37 +1061,37 @@ function buildA4Invoice(d) {
       <div class="inv-header">
         <div>
           <div class="inv-shop-name">${d.shop.shopname}</div>
-          <div class="inv-shop-sub">${d.shop.field}${d.shop.address ? ' • ' + d.shop.address : ''}${d.shop.phone ? ' • ' + d.shop.phone : ''}</div>
+          <div class="inv-shop-sub">${d.shop.field}${d.shop.phone ? ' • ' + d.shop.phone : ''}</div>
         </div>
         <div style="text-align:right">
           <div class="inv-no">${d.invNo}</div>
-          <div style="font-size:11px;color:#94A3B8;margin-top:4px">${d.date}</div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:4px">${d.date}</div>
           <div style="font-size:11px;font-weight:700;color:${statusColor};margin-top:4px">${d.payStatus}</div>
         </div>
       </div>
       <hr class="inv-divider">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
         <div>
           <div class="inv-section-title">Pelanggan</div>
           <div style="font-size:13px;font-weight:700">${d.customer}</div>
-          ${d.phone ? `<div style="font-size:11px;color:#64748B">${d.phone}</div>` : ''}
-          ${d.address ? `<div style="font-size:11px;color:#64748B">${d.address}</div>` : ''}
+          ${d.phone ? `<div style="font-size:10px;color:#64748B">${d.phone}</div>` : ''}
+          ${d.address ? `<div style="font-size:10px;color:#64748B">${d.address}</div>` : ''}
         </div>
         <div>
           <div class="inv-section-title">Produk</div>
           <div style="font-size:13px;font-weight:700">${d.product}</div>
-          <div style="font-size:11px;color:#64748B">${d.model}${d.deadline ? ' • Deadline: ' + new Date(d.deadline).toLocaleDateString('id-ID') : ''}</div>
+          <div style="font-size:10px;color:#64748B">${d.model}${d.deadline ? ' • ' + new Date(d.deadline).toLocaleDateString('id-ID') : ''}</div>
         </div>
       </div>
       <div class="inv-section-title">Rincian Size</div>
       <table class="inv-size-table">
         <thead><tr><th>Size</th><th>Qty</th><th>Harga</th><th class="text-right">Subtotal</th></tr></thead>
-        <tbody>${rows || '<tr><td colspan="4" style="text-align:center;color:#94A3B8;padding:16px">Belum ada size dipilih</td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="4" style="text-align:center;color:#94A3B8;padding:12px">Belum ada size dipilih</td></tr>'}</tbody>
       </table>
       <div class="inv-total-box">
         <div>
           <div class="inv-total-label">Total (${d.totalQty} pcs)</div>
-          ${d.payStatus === 'DP' ? `<div style="font-size:11px;opacity:.6;margin-top:2px">DP: ${fmtRp(d.dp)} | Sisa: ${fmtRp(d.sisa)}</div>` : ''}
+          ${d.payStatus === 'DP' ? `<div style="font-size:10px;opacity:.6;margin-top:2px">DP: ${fmtRp(d.dp)} | Sisa: ${fmtRp(d.sisa)}</div>` : ''}
         </div>
         <div class="inv-total-value">${fmtRp(d.totalRevenue)}</div>
       </div>
@@ -1154,6 +1181,15 @@ function copyToWA() {
   const d = getFormData();
   navigator.clipboard.writeText(buildWAText(d)).then(() => {
     toast('✅ Teks invoice disalin! Paste ke WhatsApp.');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = buildWAText(d);
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('✅ Teks invoice disalin!');
   });
 }
 
@@ -1166,10 +1202,7 @@ function saveOrder() {
   if (!customer || !product) { toast('⚠️ Nama pelanggan dan produk wajib diisi!'); return; }
 
   const d = getFormData();
-
-  // HPP
-  const base = d.base;
-  const avgPrice = d.totalQty > 0 ? d.totalRevenue / d.totalQty : base;
+  const avgPrice = d.totalQty > 0 ? d.totalRevenue / d.totalQty : d.base;
   const bahan = parseFloat(document.getElementById('f-bahan').value) || avgPrice * 0.50;
   const sablon = parseFloat(document.getElementById('f-sablon').value) || avgPrice * 0.40;
   const afdruk = parseFloat(document.getElementById('f-afdruk').value) || 0;
@@ -1201,7 +1234,6 @@ function saveOrder() {
   store.orders.push(order);
   store.invoiceCounter++;
 
-  // Auto add cashflow entry
   if (d.payStatus === 'Lunas') {
     store.cashflow.push({ id: Date.now()+1, type: 'in', desc: `Order ${d.invNo} — ${d.customer}`, amount: d.totalRevenue, date: new Date().toISOString().split('T')[0], category: 'Penjualan' });
   } else if (d.payStatus === 'DP' && d.dp > 0) {
@@ -1225,10 +1257,10 @@ function clearForm() {
 }
 
 // ===================================================
-// HISTORY
+// HISTORY — mobile card layout
 // ===================================================
 function renderHistory() {
-  const wrap = document.getElementById('history-table-wrap');
+  const list = document.getElementById('history-list');
   const search = document.getElementById('search-history').value.toLowerCase();
   const filterStatus = document.getElementById('filter-status').value;
   let orders = [...store.orders].reverse();
@@ -1236,35 +1268,43 @@ function renderHistory() {
   if (filterStatus) orders = orders.filter(o => o.payStatus === filterStatus);
 
   if (!orders.length) {
-    wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Belum ada order tersimpan</p></div>';
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Belum ada order tersimpan</p></div>';
     return;
   }
 
-  const statusBadge = (s) => s === 'Lunas' ? `<span class="badge badge-success">${s}</span>` : s === 'DP' ? `<span class="badge badge-accent">${s}</span>` : `<span class="badge badge-danger">${s}</span>`;
+  const statusBadge = s => s === 'Lunas' ? `<span class="badge badge-success">✅ ${s}</span>` : s === 'DP' ? `<span class="badge badge-accent">💳 ${s}</span>` : `<span class="badge badge-danger">⏳ ${s}</span>`;
 
-  wrap.innerHTML = `<table class="data-table">
-    <thead><tr><th>Invoice</th><th>Tanggal</th><th>Pelanggan</th><th>Produk</th><th>Qty</th><th>Total</th><th>Status</th><th>Deadline</th><th></th></tr></thead>
-    <tbody>
-    ${orders.map(o => `<tr>
-      <td><span class="mono text-brand fw-700">${o.invNo}</span></td>
-      <td class="text-secondary" style="font-size:12px">${new Date(o.date).toLocaleDateString('id-ID')}</td>
-      <td class="fw-700">${o.customer}</td>
-      <td style="font-size:12px">${o.product} <span class="text-muted">(${o.model})</span></td>
-      <td class="text-center">${o.totalQty} pcs</td>
-      <td class="mono fw-700">${fmtRp(o.totalRevenue)}</td>
-      <td>${statusBadge(o.payStatus)}</td>
-      <td style="font-size:12px">${o.deadline ? deadlineLabel(o.deadline) : '<span class="text-muted">—</span>'}</td>
-      <td><button class="btn btn-outline btn-sm" onclick="openDetail(${o.id})">Lihat</button></td>
-    </tr>`).join('')}
-    </tbody></table>`;
+  list.innerHTML = orders.map(o => `
+    <div class="order-card" onclick="openDetail(${o.id})">
+      <div class="order-card-top">
+        <div>
+          <div style="font-size:15px;font-weight:700">${o.customer}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${o.product} <span style="opacity:.6">(${o.model})</span></div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--brand)">${fmtRp(o.totalRevenue)}</div>
+          <div style="font-size:10px;color:var(--text-muted)">${o.totalQty} pcs</div>
+        </div>
+      </div>
+      <div class="order-card-bottom">
+        <div style="display:flex;align-items:center;gap:6px">
+          ${statusBadge(o.payStatus)}
+          <span style="font-size:11px;color:var(--text-muted)">${new Date(o.date).toLocaleDateString('id-ID')}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${o.deadline ? deadlineLabel(o.deadline) : ''}
+          <span class="mono" style="font-size:11px;color:var(--text-muted)">${o.invNo}</span>
+        </div>
+      </div>
+    </div>`).join('');
 }
 
 function deadlineLabel(dl) {
   const diff = Math.ceil((new Date(dl) - new Date()) / 86400000);
-  if (diff < 0) return `<span class="deadline-urgent">Terlambat ${Math.abs(diff)}h</span>`;
-  if (diff <= 2) return `<span class="deadline-urgent">🔴 ${diff}h lagi</span>`;
-  if (diff <= 5) return `<span class="deadline-soon">🟡 ${diff}h lagi</span>`;
-  return `<span class="deadline-ok">🟢 ${diff}h lagi</span>`;
+  if (diff < 0) return `<span class="deadline-urgent" style="font-size:11px">❗${Math.abs(diff)}h telat</span>`;
+  if (diff <= 2) return `<span class="deadline-urgent" style="font-size:11px">🔴 ${diff}h</span>`;
+  if (diff <= 5) return `<span class="deadline-soon" style="font-size:11px">🟡 ${diff}h</span>`;
+  return `<span class="deadline-ok" style="font-size:11px">🟢 ${diff}h</span>`;
 }
 
 function openDetail(id) {
@@ -1304,7 +1344,11 @@ function copyDetailWA() {
   if (!currentDetailOrder) return;
   const o = currentDetailOrder;
   const d = { ...o, date: new Date(o.date).toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'}), shop: o.shop };
-  navigator.clipboard.writeText(buildWAText(d)).then(() => toast('✅ Teks invoice disalin!'));
+  navigator.clipboard.writeText(buildWAText(d)).then(() => toast('✅ Teks invoice disalin!')).catch(() => {
+    const ta = document.createElement('textarea'); ta.value = buildWAText(d);
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    toast('✅ Teks invoice disalin!');
+  });
 }
 
 // ===================================================
@@ -1317,26 +1361,27 @@ function renderCashflow() {
   const net = totalIn - totalOut;
 
   document.getElementById('cf-stats').innerHTML = `
-    <div class="stat-card"><div class="stat-icon" style="background:#ECFDF5">💰</div><div class="stat-value">${fmtRp(totalIn)}</div><div class="stat-label">Total Pemasukan</div></div>
-    <div class="stat-card"><div class="stat-icon" style="background:#FEF2F2">💸</div><div class="stat-value" style="color:var(--danger)">${fmtRp(totalOut)}</div><div class="stat-label">Total Pengeluaran</div></div>
-    <div class="stat-card"><div class="stat-icon" style="background:var(--brand-light)">📊</div><div class="stat-value" style="color:${net>=0?'var(--success)':'var(--danger)'}">${fmtRp(net)}</div><div class="stat-label">Saldo Bersih</div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#ECFDF5">💰</div><div class="stat-value" style="font-size:14px">${fmtRp(totalIn)}</div><div class="stat-label">Pemasukan</div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#FEF2F2">💸</div><div class="stat-value" style="font-size:14px;color:var(--danger)">${fmtRp(totalOut)}</div><div class="stat-label">Pengeluaran</div></div>
+    <div class="stat-card" style="grid-column:1/-1"><div class="stat-icon" style="background:var(--brand-light)">📊</div><div class="stat-value" style="color:${net>=0?'var(--success)':'var(--danger)'}">${fmtRp(net)}</div><div class="stat-label">Saldo Bersih</div></div>
   `;
 
   if (!cf.length) {
     document.getElementById('cashflow-table').innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div><p>Belum ada transaksi</p></div>';
     return;
   }
-  document.getElementById('cashflow-table').innerHTML = `<table class="data-table">
-    <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jenis</th><th class="text-right">Jumlah</th><th></th></tr></thead>
-    <tbody>${cf.map(c => `<tr>
-      <td style="font-size:12px">${new Date(c.date).toLocaleDateString('id-ID')}</td>
-      <td class="fw-700">${c.desc}</td>
-      <td><span class="badge badge-brand">${c.category}</span></td>
-      <td>${c.type === 'in' ? '<span class="badge badge-success">📥 Masuk</span>' : '<span class="badge badge-danger">📤 Keluar</span>'}</td>
-      <td class="text-right ${c.type === 'in' ? 'cf-in' : 'cf-out'}">${c.type === 'in' ? '+' : '-'}${fmtRp(c.amount)}</td>
-      <td><button class="btn btn-ghost btn-icon btn-sm" onclick="deleteCashflow(${c.id})">🗑️</button></td>
-    </tr>`).join('')}
-    </tbody></table>`;
+  document.getElementById('cashflow-table').innerHTML = cf.map(c => `
+    <div class="cf-item">
+      <div style="font-size:22px">${c.type === 'in' ? '📥' : '📤'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.desc}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${new Date(c.date).toLocaleDateString('id-ID')} • ${c.category}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="${c.type === 'in' ? 'cf-in' : 'cf-out'}" style="font-size:13px">${c.type === 'in' ? '+' : '-'}${fmtRp(c.amount)}</div>
+        <button class="btn btn-ghost btn-icon btn-sm" style="padding:2px;font-size:14px" onclick="deleteCashflow(${c.id})">🗑️</button>
+      </div>
+    </div>`).join('');
 }
 
 function openAddCashflow() {
@@ -1391,7 +1436,6 @@ function renderDashboard() {
   const totalQty = orders.reduce((a, o) => a + o.totalQty, 0);
   const lunas = orders.filter(o => o.payStatus === 'Lunas').length;
 
-  // prev period comparison
   const prevStart = dashTab === 'week'
     ? new Date(startOfWeek.getTime() - 7*86400000)
     : new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -1403,9 +1447,9 @@ function renderDashboard() {
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card">
       <div class="stat-icon" style="background:#EEF2FF">💰</div>
-      <div class="stat-value">${fmtRp(revenue)}</div>
+      <div class="stat-value" style="font-size:16px">${fmtRp(revenue)}</div>
       <div class="stat-label">Total Omzet</div>
-      ${change !== null ? `<div class="stat-change ${parseFloat(change)>=0?'stat-up':'stat-down'}">${parseFloat(change)>=0?'↑':'↓'} ${Math.abs(change)}% vs periode lalu</div>` : ''}
+      ${change !== null ? `<div class="stat-change ${parseFloat(change)>=0?'stat-up':'stat-down'}">${parseFloat(change)>=0?'↑':'↓'} ${Math.abs(change)}%</div>` : ''}
     </div>
     <div class="stat-card">
       <div class="stat-icon" style="background:#ECFDF5">📦</div>
@@ -1418,7 +1462,7 @@ function renderDashboard() {
       <div class="stat-label">Total Pcs</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background:#FEF2F2">✅</div>
+      <div class="stat-icon" style="background:#ECFDF5">✅</div>
       <div class="stat-value">${lunas}</div>
       <div class="stat-label">Order Lunas</div>
     </div>
@@ -1432,28 +1476,22 @@ function renderDashboard() {
 function renderChart() {
   const chartArea = document.getElementById('chart-area');
   const now = new Date();
-
   if (dashTab === 'week') {
     const days = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
     const data = Array(7).fill(0);
     const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay());
     store.orders.forEach(o => {
       const d = new Date(o.date);
-      if (d >= startOfWeek) {
-        const day = d.getDay();
-        data[day] += o.totalRevenue;
-      }
+      if (d >= startOfWeek) { data[d.getDay()] += o.totalRevenue; }
     });
     renderBarChart(chartArea, days, data);
   } else {
     const weeks = ['M1','M2','M3','M4','M5'];
     const data = Array(5).fill(0);
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
     store.orders.forEach(o => {
       const d = new Date(o.date);
       if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-        const week = Math.floor((d.getDate() - 1) / 7);
-        data[Math.min(week, 4)] += o.totalRevenue;
+        data[Math.min(Math.floor((d.getDate()-1)/7), 4)] += o.totalRevenue;
       }
     });
     renderBarChart(chartArea, weeks, data);
@@ -1463,34 +1501,33 @@ function renderChart() {
 function renderBarChart(container, labels, data) {
   const max = Math.max(...data, 1);
   container.innerHTML = `
-    <div style="display:flex;gap:6px;align-items:flex-end;height:150px;padding-bottom:20px;position:relative">
+    <div style="display:flex;gap:6px;align-items:flex-end;height:120px;padding-bottom:18px">
       ${data.map((v, i) => `
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px">
-          <div style="font-size:9px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">${v > 0 ? fmtK(v) : ''}</div>
-          <div title="${fmtRp(v)}" style="width:100%;border-radius:4px 4px 0 0;transition:all .3s;min-height:4px;background:${v>0?'linear-gradient(180deg,var(--brand),var(--brand-dark))':'var(--border)'};opacity:${v>0?.85:.4};height:${Math.max((v/max)*100,4)}%"></div>
-          <div style="font-size:10px;color:var(--text-muted);font-weight:600">${labels[i]}</div>
-        </div>
-      `).join('')}
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px">
+          <div style="font-size:8px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">${v > 0 ? fmtK(v) : ''}</div>
+          <div style="width:100%;border-radius:4px 4px 0 0;min-height:3px;background:${v>0?'linear-gradient(180deg,var(--brand),var(--brand-dark))':'var(--border)'};opacity:${v>0?.85:.4};height:${Math.max((v/max)*100,3)}%"></div>
+          <div style="font-size:9px;color:var(--text-muted);font-weight:600">${labels[i]}</div>
+        </div>`).join('')}
     </div>`;
 }
 
 function fmtK(v) {
-  if (v >= 1000000) return (v/1000000).toFixed(1) + 'jt';
-  if (v >= 1000) return (v/1000).toFixed(0) + 'k';
+  if (v >= 1000000) return (v/1000000).toFixed(1)+'jt';
+  if (v >= 1000) return (v/1000).toFixed(0)+'k';
   return v;
 }
 
 function renderRecentOrders(orders) {
-  const recent = [...orders].reverse().slice(0, 5);
+  const recent = [...orders].reverse().slice(0, 4);
   const el = document.getElementById('recent-orders');
-  if (!recent.length) { el.innerHTML = '<div class="empty-state"><p>Belum ada order</p></div>'; return; }
+  if (!recent.length) { el.innerHTML = '<div class="empty-state" style="padding:20px"><p>Belum ada order</p></div>'; return; }
   el.innerHTML = recent.map(o => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)" onclick="openDetail(${o.id})" style="cursor:pointer">
-      <div>
-        <div style="font-size:13px;font-weight:700">${o.customer}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDetail(${o.id})">
+      <div style="min-width:0">
+        <div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.customer}</div>
         <div style="font-size:11px;color:var(--text-muted)">${o.product} • ${o.totalQty}pcs</div>
       </div>
-      <div style="text-align:right">
+      <div style="text-align:right;flex-shrink:0;margin-left:8px">
         <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--brand)">${fmtRp(o.totalRevenue)}</div>
         <div style="font-size:10px;color:var(--text-muted)">${o.invNo}</div>
       </div>
@@ -1504,18 +1541,16 @@ function renderDeadlines() {
     .map(o => ({ ...o, diff: Math.ceil((new Date(o.deadline) - new Date()) / 86400000) }))
     .filter(o => o.diff >= -1)
     .sort((a, b) => a.diff - b.diff)
-    .slice(0, 6);
-  if (!coming.length) { el.innerHTML = '<div class="empty-state" style="padding:20px"><p>Tidak ada deadline mendekati</p></div>'; return; }
-  el.innerHTML = `<table class="data-table">
-    <thead><tr><th>Order</th><th>Pelanggan</th><th>Produk</th><th>Deadline</th><th>Sisa Waktu</th></tr></thead>
-    <tbody>${coming.map(o => `<tr>
-      <td class="mono text-brand">${o.invNo}</td>
-      <td class="fw-700">${o.customer}</td>
-      <td style="font-size:12px">${o.product}</td>
-      <td style="font-size:12px">${new Date(o.deadline).toLocaleDateString('id-ID')}</td>
-      <td>${deadlineLabel(o.deadline)}</td>
-    </tr>`).join('')}
-    </tbody></table>`;
+    .slice(0, 5);
+  if (!coming.length) { el.innerHTML = '<div class="empty-state" style="padding:16px"><p>Tidak ada deadline mendekati</p></div>'; return; }
+  el.innerHTML = coming.map(o => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:700">${o.customer}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${o.product} • ${o.invNo}</div>
+      </div>
+      <div style="text-align:right">${deadlineLabel(o.deadline)}</div>
+    </div>`).join('');
 }
 
 // ===================================================
@@ -1543,6 +1578,15 @@ document.getElementById('f-payment-status').addEventListener('change', function(
   document.getElementById('dp-group').style.display = this.value === 'DP' ? 'flex' : 'none';
   recalculate();
 });
+
+// ===================================================
+// PWA SERVICE WORKER REGISTRATION
+// ===================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
 
 // ===================================================
 // INIT
