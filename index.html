@@ -1160,51 +1160,116 @@ function getFormData() {
 
 function buildA4Invoice(d) {
   const rows = d.sizes.map(s =>
-    `<tr><td>${s.label}</td><td>${s.qty}</td><td>${fmtRp(d.base + s.add)}</td><td class="text-right">${fmtRp(s.qty * (d.base + s.add))}</td></tr>`
+    `<tr>
+      <td style="font-weight:700;color:#0F172A;font-size:12px">${s.label}</td>
+      <td style="text-align:center;font-size:12px">${s.qty}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${fmtRp(d.base + s.add)}</td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#0F172A">${fmtRp(s.qty * (d.base + s.add))}</td>
+    </tr>`
   ).join('');
-  const statusColor = d.payStatus === 'Lunas' ? '#10B981' : d.payStatus === 'DP' ? '#F59E0B' : '#EF4444';
+  const statusColor = d.payStatus === 'Lunas' ? '#059669' : d.payStatus === 'DP' ? '#D97706' : '#DC2626';
+  const statusBg   = d.payStatus === 'Lunas' ? '#ECFDF5' : d.payStatus === 'DP' ? '#FFFBEB' : '#FEF2F2';
+
+  const shopLines = [
+    d.shop.field     ? `<div style="font-size:11px;color:#475569;margin-top:1px">${d.shop.field}</div>` : '',
+    d.shop.address   ? `<div style="font-size:10px;color:#64748B;margin-top:1px">📍 ${d.shop.address}</div>` : '',
+    (d.shop.phone || d.shop.email) ? `<div style="font-size:10px;color:#64748B;margin-top:1px">${[d.shop.phone ? '📞 '+d.shop.phone : '', d.shop.email ? '✉️ '+d.shop.email : ''].filter(Boolean).join('  ')}</div>` : '',
+  ].join('');
+
+  const paymentBlock = () => {
+    if (d.payStatus === 'Lunas') {
+      return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#059669">✅ LUNAS</div>`;
+    }
+    if (d.payStatus === 'DP') {
+      return `
+        <div style="margin-top:6px;border-top:1px dashed rgba(255,255,255,.25);padding-top:6px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;opacity:.8">
+            <span>DP Dibayar</span><span style="font-family:'JetBrains Mono',monospace">${fmtRp(d.dp)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800;margin-top:3px">
+            <span>SISA TAGIHAN</span><span style="font-family:'JetBrains Mono',monospace;color:#FBBF24">${fmtRp(d.sisa)}</span>
+          </div>
+        </div>`;
+    }
+    return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#FCA5A5">⏳ BELUM BAYAR</div>`;
+  };
+
+  const rekeningBlock = d.shop.bankNo ? `
+    <div style="margin-top:12px;border:1.5px solid #1E1B4B;border-radius:8px;overflow:hidden">
+      <div style="background:#1E1B4B;padding:8px 12px">
+        <div style="color:#fff;font-size:11px;font-weight:700;letter-spacing:.5px">💳 INFORMASI PEMBAYARAN</div>
+      </div>
+      <div style="padding:10px 12px;background:#F8FAFC">
+        <div style="font-size:11px;color:#475569;margin-bottom:6px;line-height:1.5">Pembayaran invoice ini bisa melalui tunai atau transfer melalui Rekening bank di bawah ini.</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
+          <div style="background:#1E1B4B;color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:4px">${d.shop.bankName || 'BANK'}</div>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#0F172A;letter-spacing:1px">${d.shop.bankNo}</div>
+            <div style="font-size:10px;color:#64748B;margin-top:1px">a/n <strong>${d.shop.bankOwner || d.shop.shopname}</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>` : '';
+
   return `
     <div class="invoice-preview" id="a4-invoice-content">
-      <div class="inv-header">
-        <div>
-          <div class="inv-shop-name">${d.shop.shopname}</div>
-          <div class="inv-shop-sub">${d.shop.field}${d.shop.phone ? ' • ' + d.shop.phone : ''}</div>
-        </div>
-        <div style="text-align:right">
-          <div class="inv-no">${d.invNo}</div>
-          <div style="font-size:10px;color:#94A3B8;margin-top:4px">${d.date}</div>
-          <div style="font-size:11px;font-weight:700;color:${statusColor};margin-top:4px">${d.payStatus}</div>
-        </div>
-      </div>
-      <hr class="inv-divider">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <div>
-          <div class="inv-section-title">Pelanggan</div>
-          <div style="font-size:13px;font-weight:700">${d.customer}</div>
-          ${d.phone ? `<div style="font-size:10px;color:#64748B">${d.phone}</div>` : ''}
-          ${d.address ? `<div style="font-size:10px;color:#64748B">${d.address}</div>` : ''}
-        </div>
-        <div>
-          <div class="inv-section-title">Produk</div>
-          <div style="font-size:13px;font-weight:700">${d.product}</div>
-          <div style="font-size:10px;color:#64748B">${d.model}${d.deadline ? ' • ' + new Date(d.deadline).toLocaleDateString('id-ID') : ''}</div>
+      <!-- HEADER TOKO -->
+      <div style="background:#1E1B4B;margin:-16px -16px 0;padding:14px 16px;border-radius:10px 10px 0 0">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-.3px">${d.shop.shopname}</div>
+            ${shopLines}
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:8px">
+            <div style="background:rgba(255,255,255,.15);color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:4px;letter-spacing:.5px">${d.invNo}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:4px">${d.date}</div>
+            <div style="background:${statusBg};color:${statusColor};font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;margin-top:4px;display:inline-block">${d.payStatus.toUpperCase()}</div>
+          </div>
         </div>
       </div>
-      <div class="inv-section-title">Rincian Size</div>
+
+      <!-- PELANGGAN & PRODUK -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 10px;padding-bottom:10px;border-bottom:1.5px solid #E2E8F0">
+        <div>
+          <div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#94A3B8;margin-bottom:4px">Kepada</div>
+          <div style="font-size:13px;font-weight:800;color:#0F172A">${d.customer}</div>
+          ${d.phone   ? `<div style="font-size:10px;color:#64748B;margin-top:2px">📞 ${d.phone}</div>` : ''}
+          ${d.address ? `<div style="font-size:10px;color:#64748B;margin-top:1px">📍 ${d.address}</div>` : ''}
+        </div>
+        <div>
+          <div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#94A3B8;margin-bottom:4px">Pesanan</div>
+          <div style="font-size:13px;font-weight:800;color:#0F172A">${d.product}</div>
+          <div style="font-size:10px;color:#64748B;margin-top:2px">${d.model}</div>
+          ${d.deadline ? `<div style="font-size:10px;color:#DC2626;font-weight:700;margin-top:2px">📅 Deadline: ${new Date(d.deadline).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</div>` : ''}
+        </div>
+      </div>
+
+      <!-- RINCIAN SIZE -->
+      <div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#94A3B8;margin-bottom:6px">Rincian Size</div>
       <table class="inv-size-table">
-        <thead><tr><th>Size</th><th>Qty</th><th>Harga</th><th class="text-right">Subtotal</th></tr></thead>
-        <tbody>${rows || '<tr><td colspan="4" style="text-align:center;color:#94A3B8;padding:12px">Belum ada size dipilih</td></tr>'}</tbody>
+        <thead>
+          <tr style="background:#F1F5F9">
+            <th style="font-size:10px;font-weight:800;color:#334155">Size</th>
+            <th style="font-size:10px;font-weight:800;color:#334155;text-align:center">Qty</th>
+            <th style="font-size:10px;font-weight:800;color:#334155">Harga/pcs</th>
+            <th style="font-size:10px;font-weight:800;color:#334155;text-align:right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="4" style="text-align:center;color:#94A3B8;padding:12px;font-size:11px">Belum ada size dipilih</td></tr>'}</tbody>
       </table>
-      <div class="inv-total-box">
+
+      <!-- TOTAL BOX -->
+      <div class="inv-total-box" style="margin-top:10px">
         <div>
-          <div class="inv-total-label">Total (${d.totalQty} pcs)</div>
-          ${d.payStatus === 'DP' ? `<div style="font-size:10px;opacity:.6;margin-top:2px">DP: ${fmtRp(d.dp)} | Sisa: ${fmtRp(d.sisa)}</div>` : ''}
+          <div class="inv-total-label" style="font-size:11px;font-weight:600">Total (${d.totalQty} pcs)</div>
+          <div class="inv-total-value" style="font-size:18px;margin-top:2px">${fmtRp(d.totalRevenue)}</div>
+          ${paymentBlock()}
         </div>
-        <div class="inv-total-value">${fmtRp(d.totalRevenue)}</div>
       </div>
-      ${d.notes ? `<div class="inv-notes">📝 ${d.notes}</div>` : ''}
-      ${d.shop.bankNo ? `<div style="background:#EEF2FF;border-radius:7px;padding:8px 10px;margin-top:10px;font-size:11px"><span style="color:#64748B;font-weight:600">💳 Transfer ke:</span> <strong>${d.shop.bankName || 'Bank'}</strong> ${d.shop.bankNo} a/n ${d.shop.bankOwner || d.shop.shopname}</div>` : ''}
-      <div class="inv-footer">${d.shop.tagline || ''}</div>
+
+      ${d.notes ? `<div class="inv-notes" style="margin-top:10px">📝 ${d.notes}</div>` : ''}
+
+      ${rekeningBlock}
     </div>`;
 }
 
@@ -1212,29 +1277,47 @@ function buildThermalInvoice(d) {
   const rows = d.sizes.map(s =>
     `<div class="th-row"><span>${s.label} x${s.qty}</span><span>${fmtRp(s.qty*(d.base+s.add))}</span></div>`
   ).join('');
-  const sep = '--------------------------------';
+  const sep = '================================';
+  const sep2 = '--------------------------------';
+
+  const dpBlock = d.payStatus === 'DP' ? `
+    <div class="th-row"><span>DP Dibayar</span><span>${fmtRp(d.dp)}</span></div>
+    <div class="th-row" style="font-weight:800;font-size:12px;border-top:1px solid #000;margin-top:4px;padding-top:4px"><span>SISA TAGIHAN</span><span>${fmtRp(d.sisa)}</span></div>` : '';
+
+  const rekeningBlock = d.shop.bankNo ? `
+    <div class="divider-char">${sep2}</div>
+    <div style="font-weight:700;font-size:11px;margin-bottom:3px">INFORMASI PEMBAYARAN</div>
+    <div style="font-size:10px;line-height:1.5;margin-bottom:4px">Pembayaran invoice ini bisa melalui tunai atau transfer melalui Rekening bank di bawah ini.</div>
+    <div class="th-row" style="font-weight:700"><span>Bank</span><span>${d.shop.bankName || ''}</span></div>
+    <div class="th-row" style="font-weight:700"><span>No. Rek</span><span>${d.shop.bankNo}</span></div>
+    <div class="th-row"><span>a/n</span><span>${d.shop.bankOwner || d.shop.shopname}</span></div>` : '';
+
   return `
     <div class="thermal-preview" id="thermal-invoice-content">
       <div class="shop-name">${d.shop.shopname}</div>
-      <div style="text-align:center;font-size:10px;color:#666">${d.shop.field || ''}</div>
-      ${d.shop.phone ? `<div style="text-align:center;font-size:10px">${d.shop.phone}</div>` : ''}
+      ${d.shop.field    ? `<div style="text-align:center;font-size:10px;color:#444;margin-top:1px">${d.shop.field}</div>` : ''}
+      ${d.shop.phone    ? `<div style="text-align:center;font-size:10px">📞 ${d.shop.phone}</div>` : ''}
+      ${d.shop.email    ? `<div style="text-align:center;font-size:10px">✉️ ${d.shop.email}</div>` : ''}
+      ${d.shop.address  ? `<div style="text-align:center;font-size:10px">📍 ${d.shop.address}</div>` : ''}
       <div class="divider-char">${sep}</div>
-      <div class="th-row"><span>No:</span><span>${d.invNo}</span></div>
+      <div class="th-row"><span>No:</span><span style="font-weight:700">${d.invNo}</span></div>
       <div class="th-row"><span>Tgl:</span><span>${d.date}</span></div>
-      <div class="th-row"><span>Pelanggan:</span><span>${d.customer}</span></div>
+      <div class="th-row"><span>Status:</span><span style="font-weight:800">${d.payStatus.toUpperCase()}</span></div>
+      <div class="divider-char">${sep2}</div>
+      <div class="th-row"><span>Pelanggan:</span><span style="font-weight:700">${d.customer}</span></div>
       ${d.phone ? `<div class="th-row"><span>WA:</span><span>${d.phone}</span></div>` : ''}
-      <div class="divider-char">${sep}</div>
-      <div class="th-section">${d.product} (${d.model})</div>
+      <div class="divider-char">${sep2}</div>
+      <div class="th-section">${d.product}</div>
+      <div style="font-size:10px;color:#666;margin-bottom:4px">${d.model}</div>
       ${rows || '<div style="text-align:center;color:#999">Belum ada size</div>'}
       <div class="divider-char">${sep}</div>
       <div class="th-total"><span>TOTAL (${d.totalQty}pcs)</span><span>${fmtRp(d.totalRevenue)}</span></div>
-      ${d.payStatus === 'DP' ? `<div class="th-row"><span>DP</span><span>${fmtRp(d.dp)}</span></div><div class="th-row" style="font-weight:700"><span>SISA</span><span>${fmtRp(d.sisa)}</span></div>` : ''}
-      <div class="th-row" style="font-weight:700;margin-top:4px"><span>STATUS</span><span>${d.payStatus}</span></div>
-      ${d.deadline ? `<div class="th-row"><span>Deadline</span><span>${new Date(d.deadline).toLocaleDateString('id-ID')}</span></div>` : ''}
-      ${d.notes ? `<div class="divider-char">${sep}</div><div style="font-size:10px">Catatan: ${d.notes}</div>` : ''}
-      ${d.shop.bankNo ? `<div class="divider-char">${sep}</div><div class="th-row" style="font-size:10px"><span>Bank</span><span>${d.shop.bankName} ${d.shop.bankNo}</span></div><div style="text-align:right;font-size:10px">a/n ${d.shop.bankOwner || d.shop.shopname}</div>` : ''}
+      ${dpBlock}
+      ${d.deadline ? `<div class="th-row" style="margin-top:4px"><span>Deadline</span><span>${new Date(d.deadline).toLocaleDateString('id-ID')}</span></div>` : ''}
+      ${d.notes ? `<div class="divider-char">${sep2}</div><div style="font-size:10px">📝 Catatan: ${d.notes}</div>` : ''}
+      ${rekeningBlock}
       <div class="divider-char">${sep}</div>
-      <div class="th-footer">${d.shop.tagline || 'Terima kasih!'}</div>
+      <div class="th-footer">Terima kasih atas kepercayaan Anda!</div>
     </div>`;
 }
 
@@ -1267,24 +1350,33 @@ function printInvoice() {
 
 function buildWAText(d) {
   const rows = d.sizes.map(s => `  ${s.label}: ${s.qty} pcs = ${fmtRp(s.qty*(d.base+s.add))}`).join('\n');
+  const dpLine = d.payStatus === 'DP'
+    ? `DP Dibayar  : ${fmtRp(d.dp)}\n*SISA TAGIHAN: ${fmtRp(d.sisa)}*\n`
+    : '';
+  const rekeningLine = d.shop.bankNo
+    ? `────────────────────\n💳 *INFORMASI PEMBAYARAN*\nPembayaran invoice ini bisa melalui tunai atau transfer melalui Rekening bank di bawah ini.\n\nBank    : *${d.shop.bankName}*\nNo. Rek : *${d.shop.bankNo}*\na/n       : *${d.shop.bankOwner || d.shop.shopname}*\n`
+    : '';
   return `*${d.shop.shopname}* — Invoice\n`
+    + (d.shop.field   ? `${d.shop.field}\n` : '')
+    + (d.shop.phone   ? `📞 ${d.shop.phone}\n` : '')
     + `────────────────────\n`
     + `No. Invoice : *${d.invNo}*\n`
     + `Tanggal     : ${d.date}\n`
     + `────────────────────\n`
     + `Pelanggan   : *${d.customer}*\n`
     + (d.phone ? `No. WA      : ${d.phone}\n` : '')
-    + `Produk      : *${d.product}* (${d.model})\n`
+    + `Produk      : *${d.product}*\n`
+    + `Model       : ${d.model}\n`
     + (d.deadline ? `Deadline    : ${new Date(d.deadline).toLocaleDateString('id-ID')}\n` : '')
     + `────────────────────\n`
     + `*Rincian Size:*\n${rows || '  (Belum ada size)'}\n`
     + `────────────────────\n`
     + `Total (${d.totalQty} pcs): *${fmtRp(d.totalRevenue)}*\n`
-    + (d.payStatus === 'DP' ? `DP       : ${fmtRp(d.dp)}\nSisa     : *${fmtRp(d.sisa)}*\n` : '')
+    + dpLine
     + `Status   : *${d.payStatus}*\n`
-    + (d.shop.bankNo ? `────────────────────\n💳 Transfer ke: *${d.shop.bankName} ${d.shop.bankNo}*\na/n ${d.shop.bankOwner || d.shop.shopname}\n` : '')
     + (d.notes ? `\n📝 Catatan: ${d.notes}\n` : '')
-    + `\n_${d.shop.tagline || 'Terima kasih!'}_ 🙏`;
+    + (rekeningLine ? `\n${rekeningLine}` : '')
+    + `\n_Terima kasih atas kepercayaan Anda!_ 🙏`;
 }
 
 function copyToWA() {
