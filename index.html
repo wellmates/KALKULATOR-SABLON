@@ -369,6 +369,65 @@ body {
 }
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
+/* ===================== PRODUCT TYPE SELECTOR ===================== */
+.produk-btn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 12px; }
+.produk-btn {
+  padding: 10px 6px; border-radius: var(--radius-sm);
+  border: 2px solid var(--border); background: var(--bg-card);
+  font-size: 13px; font-weight: 600; color: var(--text-secondary);
+  cursor: pointer; text-align: center; transition: all .15s;
+  font-family: 'Inter', sans-serif;
+}
+.produk-btn:active { transform: scale(.96); }
+.produk-btn.active {
+  border-color: var(--brand); background: var(--brand-light); color: var(--brand);
+}
+.cutting-btns { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
+.cutting-btn {
+  padding: 8px 14px; border-radius: var(--radius-sm);
+  border: 2px solid var(--border); background: var(--bg-card);
+  font-size: 13px; font-weight: 600; color: var(--text-secondary);
+  cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif;
+}
+.cutting-btn.active {
+  border-color: var(--brand); background: var(--brand-light); color: var(--brand);
+}
+.produk-summary-bar {
+  background: var(--brand-light); color: var(--brand);
+  border-radius: var(--radius-sm); padding: 8px 12px;
+  font-size: 13px; font-weight: 700; margin-top: 4px;
+}
+
+/* ===================== HPP MODAL BARU ===================== */
+.hpp-modal-preview {
+  background: var(--bg); border-radius: var(--radius-md);
+  padding: 12px; margin-top: 10px; border: 1px solid var(--border);
+}
+.hpp-modal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
+.hpp-modal-cell .size-name { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px; }
+.hpp-modal-cell .price-std { font-size: 11px; font-weight: 600; color: var(--text-primary); }
+.hpp-modal-cell .price-pjg { font-size: 10px; color: var(--brand); }
+.hpp-modal-cell .price-rib { font-size: 10px; color: var(--brand); }
+
+/* ===================== SIZE TABLE (like photo 3) ===================== */
+.size-table-wrap { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+.size-table-wrap thead th {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+  color: var(--text-muted); padding: 0 6px 4px; text-align: center;
+}
+.size-table-wrap thead th:first-child { text-align: left; }
+.size-table-wrap tbody td { padding: 2px 4px; vertical-align: middle; }
+.size-table-wrap tbody td:first-child { font-size: 13px; font-weight: 700; padding-left: 0; white-space: nowrap; }
+.size-row-label { display: flex; flex-direction: column; }
+.size-row-label .size-row-add { font-size: 10px; color: var(--brand); font-weight: 600; }
+.size-qty-input {
+  width: 100%; text-align: center; padding: 7px 4px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-input); color: var(--text-primary);
+  font-size: 14px; outline: none; font-family: 'JetBrains Mono', monospace;
+}
+.size-qty-input:focus { border-color: var(--border-focus); box-shadow: 0 0 0 2px rgba(79,70,229,.1); }
+
 /* Print type selector */
 .print-type-btns { display: flex; gap: 8px; margin-bottom: 14px; }
 .print-type-btn {
@@ -515,63 +574,61 @@ body {
         </div>
       </div>
 
-      <!-- PRODUK -->
+      <!-- JENIS PRODUK -->
       <div class="card">
-        <div class="card-title">👕 Detail Produk</div>
-        <div class="form-grid">
+        <div class="card-title">👕 Jenis Produk</div>
+        <div class="produk-btn-grid" id="produk-btn-grid">
+          <button class="produk-btn active" data-produk="Kaos" onclick="setProduk('Kaos',this)">Kaos</button>
+          <button class="produk-btn" data-produk="Jaket" onclick="setProduk('Jaket',this)">Jaket</button>
+          <button class="produk-btn" data-produk="Workshirt" onclick="setProduk('Workshirt',this)">Workshirt</button>
+          <button class="produk-btn" data-produk="Workjacket" onclick="setProduk('Workjacket',this)">Workjacket</button>
+        </div>
+
+        <div id="cutting-section">
+          <div class="card-title" style="margin-bottom:8px" id="cutting-label">Cutting Kaos</div>
+          <div class="cutting-btns" id="cutting-btns"></div>
+        </div>
+
+        <div class="produk-summary-bar" id="produk-summary">Kaos — Cutting Reguler</div>
+
+        <div class="form-grid mt-12">
           <div class="form-group form-full">
             <label>Nama Produk / Desain *</label>
             <input type="text" id="f-product" placeholder="Contoh: Kaos Event HUT RI">
           </div>
-          <div class="form-group">
-            <label>Model Produk</label>
-            <select id="f-model">
-              <option value="Kaos">👕 Kaos</option>
-              <option value="Jaket">🧥 Jaket</option>
-              <option value="Workshirt">👔 Workshirt</option>
-              <option value="Celana">👖 Celana</option>
-              <option value="PDH">🏛️ PDH</option>
-              <option value="Topi">🧢 Topi</option>
-              <option value="Totebag">👜 Totebag</option>
-              <option value="Lainnya">📦 Lainnya</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Harga Dasar/pcs (Rp)</label>
-            <input type="number" inputmode="numeric" id="f-base-price" placeholder="75000" oninput="recalculate()">
-          </div>
-        </div>
-
-        <!-- SIZE GRID -->
-        <div class="mt-12">
-          <div class="card-title" style="margin-bottom:8px">📐 Pilih Size & Jumlah</div>
-          <div id="size-grid-container"></div>
         </div>
       </div>
 
-      <!-- HPP -->
+      <!-- HPP / MODAL PRODUKSI -->
       <div class="card">
-        <div class="card-title">🧮 Komponen HPP Produksi</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Bahan (Rp/pcs)</label>
-            <input type="number" inputmode="numeric" id="f-bahan" placeholder="Auto" oninput="recalculate()">
-          </div>
-          <div class="form-group">
-            <label>Sablon (Rp/pcs)</label>
-            <input type="number" inputmode="numeric" id="f-sablon" placeholder="Auto" oninput="recalculate()">
-          </div>
-          <div class="form-group">
-            <label>Afdruk (Rp/pcs)</label>
-            <input type="number" inputmode="numeric" id="f-afdruk" placeholder="Jika ada" oninput="recalculate()">
-          </div>
-          <div class="form-group">
-            <label>Jahit (Rp/pcs)</label>
-            <input type="number" inputmode="numeric" id="f-jahit" placeholder="Auto" oninput="recalculate()">
-          </div>
+        <div class="card-title">🧮 HPP / Modal Produksi <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">(tidak tampil di struk)</span></div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Isi harga modal S–XL. Ukuran besar &amp; lengan panjang otomatis terhitung.</p>
+        <div class="form-group">
+          <label>Modal S–XL / pcs (Rp)</label>
+          <input type="number" inputmode="numeric" id="f-base-hpp" placeholder="contoh: 45000" oninput="recalculate()">
         </div>
+        <div id="hpp-modal-preview-area"></div>
         <div id="hpp-result"></div>
       </div>
+
+      <!-- DETAIL PRODUK: HARGA JUAL + SIZE TABLE -->
+      <div class="card">
+        <div class="card-title">📐 Harga Jual &amp; Jumlah Per Ukuran</div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label>Harga Jual Dasar S–XL / pcs (Rp)</label>
+          <input type="number" inputmode="numeric" id="f-base-price" placeholder="75000" oninput="recalculate()">
+        </div>
+        <!-- hidden model field for backward compat -->
+        <input type="hidden" id="f-model" value="Kaos">
+        <!-- SIZE TABLE -->
+        <div id="size-grid-container"></div>
+      </div>
+
+      <!-- HPP KOMPONEN (hidden fields for compat) -->
+      <input type="hidden" id="f-bahan">
+      <input type="hidden" id="f-sablon">
+      <input type="hidden" id="f-afdruk">
+      <input type="hidden" id="f-jahit">
 
       <!-- CATATAN & PAYMENT -->
       <div class="card">
@@ -707,6 +764,18 @@ body {
         <label>Tagline / Slogan</label>
         <input type="text" id="s-tagline" placeholder="Kualitas Terbaik">
       </div>
+      <div class="form-group">
+        <label>Nama Bank</label>
+        <input type="text" id="s-bank-name" placeholder="BCA / BRI / BNI / Mandiri">
+      </div>
+      <div class="form-group">
+        <label>No. Rekening</label>
+        <input type="text" id="s-bank-no" placeholder="1234567890" inputmode="numeric">
+      </div>
+      <div class="form-group form-full">
+        <label>Nama Pemilik Rekening</label>
+        <input type="text" id="s-bank-owner" placeholder="Nama sesuai buku tabungan">
+      </div>
     </div>
     <div class="flex gap-8 mt-16">
       <button class="btn btn-outline flex-1" onclick="closeModal('settings-modal')">Batal</button>
@@ -788,7 +857,7 @@ body {
 // DATA STORE
 // ===================================================
 let store = {
-  settings: { shopname: 'SablonPro', field: 'Sablon & Konveksi', phone: '', address: '', email: '', tagline: 'Kualitas Terbaik, Pengiriman Tepat Waktu' },
+  settings: { shopname: 'SablonPro', field: 'Sablon & Konveksi', phone: '', address: '', email: '', tagline: 'Kualitas Terbaik, Pengiriman Tepat Waktu', bankName: '', bankNo: '', bankOwner: '' },
   orders: [],
   cashflow: [],
   invoiceCounter: 1
@@ -887,6 +956,9 @@ function openSettingsModal() {
   document.getElementById('s-address').value = s.address || '';
   document.getElementById('s-email').value = s.email || '';
   document.getElementById('s-tagline').value = s.tagline || '';
+  document.getElementById('s-bank-name').value = s.bankName || '';
+  document.getElementById('s-bank-no').value = s.bankNo || '';
+  document.getElementById('s-bank-owner').value = s.bankOwner || '';
   openModal('settings-modal');
 }
 function saveSettings() {
@@ -897,6 +969,9 @@ function saveSettings() {
     address: document.getElementById('s-address').value,
     email: document.getElementById('s-email').value,
     tagline: document.getElementById('s-tagline').value,
+    bankName: document.getElementById('s-bank-name').value,
+    bankNo: document.getElementById('s-bank-no').value,
+    bankOwner: document.getElementById('s-bank-owner').value,
   };
   saveData();
   closeModal('settings-modal');
@@ -905,116 +980,149 @@ function saveSettings() {
 }
 
 // ===================================================
-// SIZE GRID — grouped by variant
+// PRODUK TYPE & CUTTING
+// ===================================================
+const CUTTING_MAP = {
+  'Kaos':      ['Reguler','Boxy','Oversize'],
+  'Jaket':     ['Reguler','Oversize'],
+  'Workshirt': ['Reguler','Slim'],
+  'Workjacket':['Reguler','Oversize'],
+};
+let currentProduk = 'Kaos';
+let currentCutting = 'Reguler';
+
+function setProduk(produk, el) {
+  currentProduk = produk;
+  document.querySelectorAll('.produk-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('f-model').value = produk;
+  renderCuttingBtns();
+  updateProdukSummary();
+}
+
+function renderCuttingBtns() {
+  const cuts = CUTTING_MAP[currentProduk] || ['Reguler'];
+  currentCutting = cuts[0];
+  document.getElementById('cutting-label').textContent = 'Cutting ' + currentProduk;
+  const wrap = document.getElementById('cutting-btns');
+  wrap.innerHTML = cuts.map((c,i) =>
+    `<button class="cutting-btn${i===0?' active':''}" onclick="setCutting('${c}',this)">${c}</button>`
+  ).join('');
+  updateProdukSummary();
+}
+
+function setCutting(cutting, el) {
+  currentCutting = cutting;
+  document.querySelectorAll('.cutting-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  updateProdukSummary();
+}
+
+function updateProdukSummary() {
+  const el = document.getElementById('produk-summary');
+  if (el) el.textContent = currentProduk + ' — Cutting ' + currentCutting;
+}
+
+// ===================================================
+// SIZE GRID — table layout like photo 3
 // ===================================================
 function renderSizeGrid() {
   const container = document.getElementById('size-grid-container');
   container.innerHTML = '';
 
-  const groups = ['Normal', 'Panjang', 'Panjang+Rib'];
-  const groupEmoji = { 'Normal': '📏', 'Panjang': '📐', 'Panjang+Rib': '🧵' };
-  const groupDesc = { 'Normal': 'Standar', 'Panjang': '+Rp10.000/pcs', 'Panjang+Rib': '+Rp15.000/pcs' };
+  const colHeaders = `
+    <thead>
+      <tr>
+        <th style="text-align:left;padding-left:0">Ukuran</th>
+        <th>Pendek</th>
+        <th>Panjang<br><span style="color:var(--brand);font-weight:700">+10rb/pcs</span></th>
+        <th>Pjg+Rib<br><span style="color:var(--brand);font-weight:700">+15rb/pcs</span></th>
+      </tr>
+    </thead>`;
 
-  groups.forEach(groupName => {
-    const groupSizes = SIZES.filter(s => s.group === groupName);
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'size-group';
-
-    wrapper.innerHTML = `<div class="size-group-title">${groupEmoji[groupName]} ${groupName} <span style="font-weight:400;text-transform:none;letter-spacing:0">(${groupDesc[groupName]})</span></div>`;
-
-    const grid = document.createElement('div');
-    grid.className = 'size-grid';
-
-    groupSizes.forEach(s => {
-      const el = document.createElement('div');
-      el.className = 'size-item';
-      el.id = 'size-' + s.code;
-      el.onclick = () => {
-        el.classList.toggle('selected');
-        recalculate();
-      };
-      el.innerHTML = `
-        <div class="size-label">${s.baseCode}</div>
-        <div class="size-price">${s.add > 0 ? '+'+fmt(s.add) : 'Std'}</div>
-        <input class="size-qty" type="number" inputmode="numeric" min="0" placeholder="Qty" id="qty-${s.code}"
-          onclick="event.stopPropagation()" oninput="recalculate()">
-      `;
-      grid.appendChild(el);
-    });
-
-    wrapper.appendChild(grid);
-    container.appendChild(wrapper);
+  let rows = '';
+  SIZE_BASE.forEach(s => {
+    const badge = s.add > 0 ? `<span class="size-row-add">+${fmt(s.add)}rb</span>` : '';
+    rows += `<tr>
+      <td>
+        <div class="size-row-label">
+          <span style="font-size:13px;font-weight:700">${s.label}</span>
+          ${badge}
+        </div>
+      </td>
+      <td><input class="size-qty-input" type="number" inputmode="numeric" min="0" placeholder="0" id="qty-${s.code}" oninput="recalculate()"></td>
+      <td><input class="size-qty-input" type="number" inputmode="numeric" min="0" placeholder="0" id="qty-${s.code}_P" oninput="recalculate()"></td>
+      <td><input class="size-qty-input" type="number" inputmode="numeric" min="0" placeholder="0" id="qty-${s.code}_PR" oninput="recalculate()"></td>
+    </tr>`;
   });
+
+  container.innerHTML = `<table class="size-table-wrap">${colHeaders}<tbody>${rows}</tbody></table>`;
 }
 
 function getSizeData() {
   return SIZES.map(s => {
     const qty = parseInt(document.getElementById('qty-' + s.code)?.value || '0') || 0;
-    const selected = document.getElementById('size-' + s.code)?.classList.contains('selected');
-    return { ...s, qty: selected ? qty : 0, selected };
-  }).filter(s => s.selected);
+    return { ...s, qty };
+  }).filter(s => s.qty > 0);
 }
 
 // ===================================================
 // CALCULATE HPP
 // ===================================================
 function recalculate() {
+  const baseHpp = parseFloat(document.getElementById('f-base-hpp')?.value) || 0;
   const base = parseFloat(document.getElementById('f-base-price')?.value) || 0;
   const sizes = getSizeData();
   const totalQty = sizes.reduce((a, s) => a + s.qty, 0);
   const totalRevenue = sizes.reduce((a, s) => a + (s.qty * (base + s.add)), 0);
 
-  const bahan = parseFloat(document.getElementById('f-bahan')?.value);
-  const sablon = parseFloat(document.getElementById('f-sablon')?.value);
-  const afdruk = parseFloat(document.getElementById('f-afdruk')?.value) || 0;
-  const jahit = parseFloat(document.getElementById('f-jahit')?.value);
-
-  const avgPrice = totalQty > 0 ? totalRevenue / totalQty : base;
-
-  const calcBahan = isNaN(bahan) ? avgPrice * 0.50 : bahan;
-  const calcSablon = isNaN(sablon) ? avgPrice * 0.40 : sablon;
-  const calcAfdruk = afdruk;
-  let calcJahit = 0;
-  if (calcAfdruk === 0) {
-    calcJahit = isNaN(jahit) ? avgPrice * 0.10 : jahit;
-  } else {
-    calcJahit = isNaN(jahit) ? 0 : jahit;
+  // HPP modal preview
+  const previewArea = document.getElementById('hpp-modal-preview-area');
+  if (previewArea) {
+    if (baseHpp > 0) {
+      const cells = SIZE_BASE.map(s => `
+        <div class="hpp-modal-cell">
+          <div class="size-name">${s.label}</div>
+          <div class="price-std">${fmtRp(baseHpp + s.add)}</div>
+          <div class="price-pjg">Pjg: ${fmtRp(baseHpp + s.add + 10000)}</div>
+          <div class="price-rib">Rib: ${fmtRp(baseHpp + s.add + 15000)}</div>
+        </div>`).join('');
+      previewArea.innerHTML = `
+        <div class="hpp-modal-preview">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Preview HPP Otomatis</div>
+          <div class="hpp-modal-grid">${cells}</div>
+        </div>`;
+    } else {
+      previewArea.innerHTML = '';
+    }
   }
 
-  const hppPerPcs = calcBahan + calcSablon + calcAfdruk + calcJahit;
-  const totalHpp = hppPerPcs * totalQty;
+  // HPP produksi result box
+  const avgPrice = totalQty > 0 ? totalRevenue / totalQty : base;
+  const hppPerPcs = baseHpp > 0 ? baseHpp : avgPrice * 0.50;
+  const totalHpp = sizes.reduce((a, s) => {
+    const hpp = baseHpp > 0 ? (baseHpp + s.add) : (avgPrice * 0.50 + s.add);
+    return a + hpp * s.qty;
+  }, 0);
   const profit = totalRevenue - totalHpp;
   const margin = totalRevenue > 0 ? (profit / totalRevenue * 100) : 0;
 
   const hppEl = document.getElementById('hpp-result');
-  if (hppEl) {
+  if (hppEl && (base > 0 || baseHpp > 0) && totalQty > 0) {
     hppEl.innerHTML = `
-      <div class="hpp-box">
-        <div class="hpp-box-title">HPP Produksi — Tidak tampil di invoice</div>
-        <div class="hpp-row"><span class="label">Bahan (50%)</span><span class="value">${fmtRp(calcBahan)}/pcs</span></div>
-        <div class="hpp-row"><span class="label">Sablon (40%)</span><span class="value">${fmtRp(calcSablon)}/pcs</span></div>
-        <div class="hpp-row"><span class="label">Afdruk</span><span class="value">${fmtRp(calcAfdruk)}/pcs</span></div>
-        <div class="hpp-row"><span class="label">Jahit${calcAfdruk === 0 ? ' (10%)' : ''}</span><span class="value">${fmtRp(calcJahit)}/pcs</span></div>
+      <div class="hpp-box" style="margin-top:12px">
+        <div class="hpp-box-title">Rekap HPP Produksi — Tidak tampil di invoice</div>
+        <div class="hpp-row"><span class="label">Total Qty</span><span class="value">${totalQty} pcs</span></div>
+        <div class="hpp-row"><span class="label">Total HPP Modal</span><span class="value">${fmtRp(totalHpp)}</span></div>
+        <div class="hpp-row"><span class="label">Total Revenue</span><span class="value">${fmtRp(totalRevenue)}</span></div>
         <hr class="hpp-divider">
-        <div class="hpp-row hpp-total">
-          <span class="label">HPP per pcs</span>
-          <span class="value">${fmtRp(hppPerPcs)}</span>
-        </div>
-        <div class="hpp-row">
-          <span class="label">Total HPP (${totalQty} pcs)</span>
-          <span class="value">${fmtRp(totalHpp)}</span>
-        </div>
-        <div class="hpp-row">
-          <span class="label">Total Revenue</span>
-          <span class="value">${fmtRp(totalRevenue)}</span>
-        </div>
         <div class="hpp-margin">
           ${margin >= 0 ? '📈' : '📉'} Margin: ${margin.toFixed(1)}% | Profit: ${fmtRp(profit)}
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${Math.min(Math.max(margin,0),100)}%"></div></div>
         </div>
-      </div>
-    `;
+      </div>`;
+  } else if (hppEl) {
+    hppEl.innerHTML = '';
   }
 
   const ps = document.getElementById('f-payment-status');
@@ -1023,7 +1131,6 @@ function recalculate() {
 
   renderInvoicePreview();
 }
-
 // ===================================================
 // INVOICE
 // ===================================================
@@ -1042,7 +1149,7 @@ function getFormData() {
     phone: document.getElementById('f-phone')?.value || '',
     address: document.getElementById('f-address')?.value || '',
     product: document.getElementById('f-product')?.value || '-',
-    model: document.getElementById('f-model')?.value || '',
+    model: currentProduk + ' — Cutting ' + currentCutting,
     base, sizes, totalQty, totalRevenue, dp, payStatus, sisa,
     deadline: document.getElementById('f-deadline')?.value || '',
     notes: document.getElementById('f-notes')?.value || '',
@@ -1096,6 +1203,7 @@ function buildA4Invoice(d) {
         <div class="inv-total-value">${fmtRp(d.totalRevenue)}</div>
       </div>
       ${d.notes ? `<div class="inv-notes">📝 ${d.notes}</div>` : ''}
+      ${d.shop.bankNo ? `<div style="background:#EEF2FF;border-radius:7px;padding:8px 10px;margin-top:10px;font-size:11px"><span style="color:#64748B;font-weight:600">💳 Transfer ke:</span> <strong>${d.shop.bankName || 'Bank'}</strong> ${d.shop.bankNo} a/n ${d.shop.bankOwner || d.shop.shopname}</div>` : ''}
       <div class="inv-footer">${d.shop.tagline || ''}</div>
     </div>`;
 }
@@ -1124,6 +1232,7 @@ function buildThermalInvoice(d) {
       <div class="th-row" style="font-weight:700;margin-top:4px"><span>STATUS</span><span>${d.payStatus}</span></div>
       ${d.deadline ? `<div class="th-row"><span>Deadline</span><span>${new Date(d.deadline).toLocaleDateString('id-ID')}</span></div>` : ''}
       ${d.notes ? `<div class="divider-char">${sep}</div><div style="font-size:10px">Catatan: ${d.notes}</div>` : ''}
+      ${d.shop.bankNo ? `<div class="divider-char">${sep}</div><div class="th-row" style="font-size:10px"><span>Bank</span><span>${d.shop.bankName} ${d.shop.bankNo}</span></div><div style="text-align:right;font-size:10px">a/n ${d.shop.bankOwner || d.shop.shopname}</div>` : ''}
       <div class="divider-char">${sep}</div>
       <div class="th-footer">${d.shop.tagline || 'Terima kasih!'}</div>
     </div>`;
@@ -1173,6 +1282,7 @@ function buildWAText(d) {
     + `Total (${d.totalQty} pcs): *${fmtRp(d.totalRevenue)}*\n`
     + (d.payStatus === 'DP' ? `DP       : ${fmtRp(d.dp)}\nSisa     : *${fmtRp(d.sisa)}*\n` : '')
     + `Status   : *${d.payStatus}*\n`
+    + (d.shop.bankNo ? `────────────────────\n💳 Transfer ke: *${d.shop.bankName} ${d.shop.bankNo}*\na/n ${d.shop.bankOwner || d.shop.shopname}\n` : '')
     + (d.notes ? `\n📝 Catatan: ${d.notes}\n` : '')
     + `\n_${d.shop.tagline || 'Terima kasih!'}_ 🙏`;
 }
@@ -1202,12 +1312,13 @@ function saveOrder() {
   if (!customer || !product) { toast('⚠️ Nama pelanggan dan produk wajib diisi!'); return; }
 
   const d = getFormData();
+  const baseHpp = parseFloat(document.getElementById('f-base-hpp').value) || 0;
   const avgPrice = d.totalQty > 0 ? d.totalRevenue / d.totalQty : d.base;
-  const bahan = parseFloat(document.getElementById('f-bahan').value) || avgPrice * 0.50;
-  const sablon = parseFloat(document.getElementById('f-sablon').value) || avgPrice * 0.40;
-  const afdruk = parseFloat(document.getElementById('f-afdruk').value) || 0;
-  const jahit = afdruk === 0 ? (parseFloat(document.getElementById('f-jahit').value) || avgPrice * 0.10) : 0;
-  const hppPerPcs = bahan + sablon + afdruk + jahit;
+  const hppPerPcs = baseHpp > 0 ? baseHpp : avgPrice * 0.50;
+  const totalHpp = d.sizes.reduce((a, s) => {
+    const hpp = baseHpp > 0 ? (baseHpp + s.add) : (hppPerPcs + s.add);
+    return a + hpp * s.qty;
+  }, 0);
 
   const order = {
     id: Date.now(),
@@ -1228,7 +1339,7 @@ function saveOrder() {
     notes: d.notes,
     date: new Date().toISOString(),
     shop: { ...store.settings },
-    hpp: { bahan, sablon, afdruk, jahit, hppPerPcs, totalHpp: hppPerPcs * d.totalQty },
+    hpp: { hppPerPcs, totalHpp },
   };
 
   store.orders.push(order);
@@ -1247,12 +1358,16 @@ function saveOrder() {
 }
 
 function clearForm() {
-  ['f-customer','f-phone','f-address','f-product','f-base-price','f-bahan','f-sablon','f-afdruk','f-jahit','f-notes','f-dp','f-deadline']
+  ['f-customer','f-phone','f-address','f-product','f-base-price','f-base-hpp','f-notes','f-dp','f-deadline']
     .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-  document.getElementById('f-model').value = 'Kaos';
   document.getElementById('f-payment-status').value = 'Belum Bayar';
-  document.querySelectorAll('.size-item').forEach(el => el.classList.remove('selected'));
-  document.querySelectorAll('.size-qty').forEach(el => el.value = '');
+  document.querySelectorAll('.size-qty-input').forEach(el => el.value = '');
+  // reset produk
+  currentProduk = 'Kaos';
+  currentCutting = 'Reguler';
+  document.querySelectorAll('.produk-btn').forEach(b => b.classList.toggle('active', b.dataset.produk === 'Kaos'));
+  renderCuttingBtns();
+  updateProdukSummary();
   recalculate();
 }
 
@@ -1594,6 +1709,8 @@ if ('serviceWorker' in navigator) {
 loadData();
 loadTheme();
 renderSizeGrid();
+renderCuttingBtns();
+updateProdukSummary();
 renderDashboard();
 recalculate();
 </script>
