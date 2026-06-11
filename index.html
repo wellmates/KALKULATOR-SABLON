@@ -1392,6 +1392,55 @@ body {
   </div>
 </div>
 
+<!-- EDIT CASHFLOW MODAL -->
+<div class="modal-overlay" id="edit-cashflow-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">✏️ Edit Transaksi</div>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('edit-cashflow-modal')">✕</button>
+    </div>
+    <input type="hidden" id="ecf-id">
+    <div class="form-grid">
+      <div class="form-group form-full">
+        <label>Jenis Transaksi</label>
+        <select id="ecf-type">
+          <option value="in">📥 Pemasukan</option>
+          <option value="out">📤 Pengeluaran</option>
+        </select>
+      </div>
+      <div class="form-group form-full">
+        <label>Keterangan</label>
+        <input type="text" id="ecf-desc" placeholder="Keterangan transaksi...">
+      </div>
+      <div class="form-group">
+        <label>Jumlah (Rp)</label>
+        <input type="number" inputmode="numeric" id="ecf-amount" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Tanggal</label>
+        <input type="date" id="ecf-date">
+      </div>
+      <div class="form-group form-full">
+        <label>Kategori</label>
+        <select id="ecf-category">
+          <option>Bahan Baku</option>
+          <option>Biaya Produksi</option>
+          <option>Penjualan</option>
+          <option>Gaji Karyawan</option>
+          <option>Listrik / Air</option>
+          <option>Marketing</option>
+          <option>Lainnya</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-8 mt-16">
+      <button class="btn btn-outline flex-1" onclick="closeModal('edit-cashflow-modal')">Batal</button>
+      <button class="btn btn-primary flex-1" onclick="saveEditCashflow()">💾 Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
 <!-- HUTANG / PIUTANG MODAL -->
 <div class="modal-overlay" id="hutang-piutang-modal">
   <div class="modal">
@@ -1669,7 +1718,7 @@ function saveSettings() {
   closeModal('settings-modal');
   updateTopbarLogo();
   recalculate();
-  toast('✅ Pengaturan tersimpan!');
+  setTimeout(() => toast('✅ Pengaturan tersimpan!'), 300);
 }
 
 // ===================================================
@@ -2286,8 +2335,8 @@ function saveOrder() {
 
   saveData();
   clearForm();
-  toast('✅ Order tersimpan!');
-  setTimeout(() => navigate('history'), 600);
+  toast('✅ Order tersimpan! Mengarahkan ke riwayat...');
+  setTimeout(() => navigate('history'), 1500);
 }
 
 function clearForm() {
@@ -2691,7 +2740,7 @@ function saveEditOrder() {
   closeModal('edit-order-modal');
   refreshDetailBody();
   renderHistory();
-  toast('✅ Order diperbarui!');
+  setTimeout(() => toast('✅ Order berhasil diperbarui!'), 300);
 }
 
 function deleteOrder(id) {
@@ -2704,7 +2753,7 @@ function deleteOrder(id) {
   saveData();
   closeModal('detail-modal');
   renderHistory();
-  toast('🗑️ Order & riwayat pemasukan dihapus');
+  setTimeout(() => toast('🗑️ Order berhasil dihapus!'), 300);
 }
 
 function printDetailInvoice() {
@@ -2851,7 +2900,7 @@ function renderCashflow() {
     sub: `${new Date(c.date).toLocaleDateString('id-ID')} • ${c.category}`,
     amountStr: `${c.type === 'in' ? '+' : '-'}${fmtRp(c.amount)}`,
     amountClass: c.type === 'in' ? 'cf-in' : 'cf-out',
-    action: `<button class="btn btn-ghost btn-icon btn-sm" style="padding:2px;font-size:14px" onclick="deleteCashflow(${c.id})">🗑️</button>`,
+    action: `<div style="display:flex;gap:4px"><button class="btn btn-ghost btn-icon btn-sm" style="padding:2px;font-size:14px" onclick="openEditCashflow(${c.id})">✏️</button><button class="btn btn-ghost btn-icon btn-sm" style="padding:2px;font-size:14px" onclick="deleteCashflow(${c.id})">🗑️</button></div>`,
     tag: `<span style="font-size:10px;background:var(--brand-light);color:var(--brand);padding:2px 6px;border-radius:4px;font-weight:700">KAS</span>`,
   }));
 
@@ -2926,14 +2975,47 @@ function saveCashflow() {
   saveData();
   closeModal('cashflow-modal');
   renderCashflow();
-  toast('✅ Transaksi tersimpan!');
+  setTimeout(() => toast('✅ Transaksi tersimpan!'), 300);
 }
 
 function deleteCashflow(id) {
   store.cashflow = store.cashflow.filter(c => c.id !== id);
   saveData();
   renderCashflow();
-  toast('🗑️ Transaksi dihapus');
+  setTimeout(() => toast('🗑️ Transaksi dihapus!'), 150);
+}
+
+function openEditCashflow(id) {
+  const c = store.cashflow.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('ecf-id').value = id;
+  document.getElementById('ecf-type').value = c.type;
+  document.getElementById('ecf-desc').value = c.desc;
+  document.getElementById('ecf-amount').value = c.amount;
+  document.getElementById('ecf-date').value = c.date;
+  document.getElementById('ecf-category').value = c.category || 'Lainnya';
+  openModal('edit-cashflow-modal');
+}
+
+function saveEditCashflow() {
+  const id = parseInt(document.getElementById('ecf-id').value);
+  const amount = parseFloat(document.getElementById('ecf-amount').value);
+  const desc = document.getElementById('ecf-desc').value;
+  if (!amount || !desc) { toast('⚠️ Isi semua field!'); return; }
+  const idx = store.cashflow.findIndex(x => x.id === id);
+  if (idx < 0) return;
+  store.cashflow[idx] = {
+    ...store.cashflow[idx],
+    type: document.getElementById('ecf-type').value,
+    desc,
+    amount,
+    date: document.getElementById('ecf-date').value,
+    category: document.getElementById('ecf-category').value,
+  };
+  saveData();
+  closeModal('edit-cashflow-modal');
+  renderCashflow();
+  setTimeout(() => toast('✅ Transaksi berhasil diperbarui!'), 300);
 }
 
 // ===================================================
@@ -2972,7 +3054,7 @@ function saveHutangPiutang() {
   closeModal('hutang-piutang-modal');
   if (type === 'hutang') renderHutang();
   else renderPiutang();
-  toast('✅ Tersimpan!');
+  setTimeout(() => toast(`✅ ${type === 'hutang' ? 'Hutang' : 'Piutang'} tersimpan!`), 300);
 }
 
 function toggleLunas(type, id) {
@@ -2982,6 +3064,7 @@ function toggleLunas(type, id) {
   saveData();
   if (type === 'hutang') renderHutang();
   else renderPiutang();
+  setTimeout(() => toast(item.lunas ? '✅ Ditandai Lunas!' : '↩️ Dibuka kembali!'), 150);
 }
 
 function deleteHP(type, id) {
@@ -2990,7 +3073,7 @@ function deleteHP(type, id) {
   saveData();
   if (type === 'hutang') renderHutang();
   else renderPiutang();
-  toast('🗑️ Dihapus');
+  setTimeout(() => toast(`🗑️ ${type === 'hutang' ? 'Hutang' : 'Piutang'} dihapus!`), 150);
 }
 
 function renderHPList(type) {
@@ -3061,14 +3144,14 @@ function saveBelanja() {
   saveData();
   closeModal('belanja-modal');
   renderBelanja();
-  toast('✅ Belanja tersimpan!');
+  setTimeout(() => toast('✅ Belanja tersimpan!'), 300);
 }
 
 function deleteBelanja(id) {
   store.belanja = store.belanja.filter(x => x.id !== id);
   saveData();
   renderBelanja();
-  toast('🗑️ Dihapus');
+  setTimeout(() => toast('🗑️ Belanja dihapus!'), 150);
 }
 
 function renderBelanja() {
