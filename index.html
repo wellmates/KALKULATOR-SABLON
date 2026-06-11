@@ -2251,7 +2251,7 @@ function saveOrder() {
   store.orders.push(order);
   store.invoiceCounter++;
 
-  // Cashflow: pemasukan dari order (masuk ke riwayat)
+  // Cashflow: pemasukan dari order
   const tglOrder = new Date().toISOString().split('T')[0];
   if (d.payStatus === 'Lunas') {
     store.cashflow.push({ id: Date.now()+1, type: 'in', desc: `Lunas — ${d.invNo} (${d.customer})`, amount: d.totalRevenue, date: tglOrder, category: 'Penjualan' });
@@ -2259,9 +2259,17 @@ function saveOrder() {
     store.cashflow.push({ id: Date.now()+1, type: 'in', desc: `DP ke-1 — ${d.invNo} (${d.customer})`, amount: d.dp, date: tglOrder, category: 'Penjualan' });
   }
 
+  // Cashflow: pengeluaran HPP otomatis (bahan + sablon)
+  if (baseHpp > 0 && totalPcs > 0) {
+    const totalBahan  = breakdown.bahan  * totalPcs;
+    const totalSablon = breakdown.sablon * totalPcs;
+    if (totalBahan > 0)  store.cashflow.push({ id: Date.now()+2, type: 'out', desc: `HPP Bahan — ${d.invNo} (${d.customer})`,         amount: totalBahan,  date: tglOrder, category: 'Biaya Produksi' });
+    if (totalSablon > 0) store.cashflow.push({ id: Date.now()+3, type: 'out', desc: `HPP Sablon/Bordir — ${d.invNo} (${d.customer})`, amount: totalSablon, date: tglOrder, category: 'Biaya Produksi' });
+  }
+
   saveData();
   clearForm();
-  toast('✅ Order berhasil disimpan!');
+  toast('✅ Order tersimpan!');
   navigate('history');
 }
 
@@ -2721,7 +2729,9 @@ function renderCashflow() {
     const [fy, fm] = filterMonth.split('-').map(Number);
     cfAll = cfAll.filter(c => { const d = new Date(c.date); return d.getFullYear()===fy && d.getMonth()+1===fm; });
   }
-  const cf = [...cfAll].reverse();
+  // Feed: cashflow IN semua tampil, cashflow OUT yang HPP disembunyikan dari feed
+  const cfFeed = cfAll.filter(c => !(c.type === 'out' && c.desc.startsWith('HPP')));
+  const cf = [...cfFeed].reverse();
   const totalIn  = cfAll.filter(c => c.type === 'in').reduce((a, c) => a + c.amount, 0);
   const totalOut = cfAll.filter(c => c.type === 'out').reduce((a, c) => a + c.amount, 0);
 
