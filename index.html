@@ -1307,6 +1307,10 @@ body {
         <input type="number" inputmode="numeric" id="edit-base-price" placeholder="75000" oninput="recalcEditSizes()">
       </div>
       <div class="form-group">
+        <label>HPP / pcs (Rp)</label>
+        <input type="number" inputmode="numeric" id="edit-base-hpp" placeholder="0" oninput="recalcEditSizes()">
+      </div>
+      <div class="form-group">
         <label>Status Pembayaran</label>
         <select id="edit-pay-status" onchange="toggleEditDp()">
           <option value="Belum Bayar">⏳ Belum Bayar</option>
@@ -2551,6 +2555,7 @@ function openEditOrder() {
   document.getElementById('edit-address').value = o.address || '';
   document.getElementById('edit-product').value = o.product;
   document.getElementById('edit-base-price').value = o.base;
+  document.getElementById('edit-base-hpp').value = o.baseHpp || '';
   document.getElementById('edit-pay-status').value = o.payStatus;
   document.getElementById('edit-dp').value = o.dp || '';
   document.getElementById('edit-dp-group').style.display = o.payStatus === 'DP' ? 'flex' : 'none';
@@ -2572,35 +2577,59 @@ function renderEditSizeGrid(o) {
     const qN  = (o.sizes.find(x=>x.code===s.code)?.qty)||0;
     const qP  = (o.sizes.find(x=>x.code===s.code+'_P')?.qty)||0;
     const qPR = (o.sizes.find(x=>x.code===s.code+'_PR')?.qty)||0;
+    // Custom add-on price: stored per size or fallback to default
+    const customAdd = o.sizes.find(x=>x.code===s.code)?.customAdd ?? s.add;
     rows += `<tr>
-      <td style="font-size:13px;font-weight:700;padding:2px 0">${s.label}</td>
+      <td style="font-size:12px;font-weight:700;padding:3px 0;width:36px">${s.label}</td>
       <td><input class="size-qty-input" type="number" inputmode="numeric" min="0" placeholder="0" id="eqty-${s.code}" value="${qN||''}" oninput="recalcEditSizes()"></td>
       <td><input class="size-qty-input" type="number" inputmode="numeric" min="0" placeholder="0" id="eqty-${s.code}_P" value="${qP||''}" oninput="recalcEditSizes()"></td>
       <td><input class="size-qty-input" type="number" inputmode="numeric" min="0" placeholder="0" id="eqty-${s.code}_PR" value="${qPR||''}" oninput="recalcEditSizes()"></td>
+      <td><input class="size-qty-input" type="number" inputmode="numeric" min="0" placeholder="+0" id="eadd-${s.code}" value="${customAdd||''}" oninput="recalcEditSizes()" title="Tambahan harga ukuran ${s.label} vs dasar" style="color:var(--accent)"></td>
     </tr>`;
   });
   wrap.innerHTML = `<table class="size-table-wrap">
     <thead><tr>
-      <th style="text-align:left;padding-left:0">Ukuran</th>
-      <th>Pendek</th><th>Panjang</th><th>Pjg+Rib</th>
-    </tr></thead><tbody>${rows}</tbody></table>`;
+      <th style="text-align:left;padding-left:0">Ukur</th>
+      <th>Pendek</th><th>Panjang</th><th>Pjg+Rib</th><th style="color:var(--accent)">+Harga</th>
+    </tr></thead><tbody>${rows}</tbody></table>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:4px">💡 +Harga = selisih harga ukuran ini vs harga dasar</div>`;
 }
 
 function getEditSizeData() {
   return SIZES.map(s => {
     const qty = parseInt(document.getElementById('eqty-' + s.code)?.value || '0') || 0;
-    return { ...s, qty };
+    // Read custom add-on from SIZE_BASE row (not _P or _PR variants)
+    const baseCode = s.baseCode || s.code;
+    const addEl = document.getElementById('eadd-' + baseCode);
+    const customAdd = addEl ? (parseFloat(addEl.value) || 0) : s.add;
+    // Panjang adds +10k, Pjg+Rib adds +15k on top of customAdd
+    let effectiveAdd = customAdd;
+    if (s.group === 'Panjang')     effectiveAdd = customAdd + 10000;
+    if (s.group === 'Panjang+Rib') effectiveAdd = customAdd + 15000;
+    return { ...s, qty, add: effectiveAdd, customAdd };
   }).filter(s => s.qty > 0);
 }
 
 function recalcEditSizes() {
   const base = parseFloat(document.getElementById('edit-base-price')?.value) || 0;
+  const hpp  = parseFloat(document.getElementById('edit-base-hpp')?.value) || 0;
   const sizes = getEditSizeData();
-  const totalQty = sizes.reduce((a,s)=>a+s.qty,0);
+  const totalQty     = sizes.reduce((a,s)=>a+s.qty,0);
   const totalRevenue = sizes.reduce((a,s)=>a+s.qty*(base+s.add),0);
+  const totalHpp     = hpp * totalQty;
   const el = document.getElementById('edit-summary-box');
   if (el && totalQty > 0) {
-    el.innerHTML = `<div style="background:var(--brand-light);color:var(--brand);padding:9px 12px;border-radius:8px;font-size:13px;font-weight:700">${totalQty} pcs — Total: ${fmtRp(totalRevenue)}</div>`;
+    el.innerHTML = `
+      <div style="background:var(--brand-light);color:var(--brand);padding:10px 12px;border-radius:8px;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center">
+        <span>${totalQty} pcs</span>
+        <span>Total: ${fmtRp(totalRevenue)}</span>
+      </div>
+      ${hpp > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-top:6px;padding:0 2px">
+        <span>HPP Total</span><span style="color:var(--danger);font-weight:700">${fmtRp(totalHpp)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);padding:0 2px">
+        <span>Estimasi Profit</span><span style="color:var(--success);font-weight:700">${fmtRp(totalRevenue - totalHpp)}</span>
+      </div>` : ''}`;
   } else if (el) el.innerHTML = '';
 }
 
@@ -2609,27 +2638,44 @@ function saveEditOrder() {
   if (!o) return;
   const customer = document.getElementById('edit-customer').value;
   if (!customer) { toast('⚠️ Nama pelanggan wajib diisi!'); return; }
-  const base = parseFloat(document.getElementById('edit-base-price').value) || o.base;
-  const sizes = getEditSizeData();
-  const totalQty = sizes.reduce((a,s)=>a+s.qty,0);
+  const base    = parseFloat(document.getElementById('edit-base-price').value) || o.base;
+  const baseHpp = parseFloat(document.getElementById('edit-base-hpp').value) || o.baseHpp || 0;
+  const sizes   = getEditSizeData();
+  const totalQty     = sizes.reduce((a,s)=>a+s.qty,0);
   const totalRevenue = sizes.reduce((a,s)=>a+s.qty*(base+s.add),0);
   const payStatus = document.getElementById('edit-pay-status').value;
-  const dp = payStatus === 'DP' ? (parseFloat(document.getElementById('edit-dp').value)||o.dp||0) : (payStatus==='Lunas'?totalRevenue:0);
+  const dp   = payStatus === 'DP' ? (parseFloat(document.getElementById('edit-dp').value)||o.dp||0) : (payStatus==='Lunas'?totalRevenue:0);
   const sisa = payStatus==='Lunas' ? 0 : payStatus==='DP' ? totalRevenue-dp : totalRevenue;
 
-  // Update in store
+  // Update HPP cashflow entries — hapus yang lama, buat yang baru
+  store.cashflow = store.cashflow.filter(c => !(c.type==='out' && c.desc.includes(o.invNo) && c.desc.startsWith('HPP')));
+  if (baseHpp > 0 && totalQty > 0) {
+    const tgl = o.date || new Date().toISOString().split('T')[0];
+    const breakdown = { bahan: Math.round(baseHpp*0.55), sablon: Math.round(baseHpp*0.45) };
+    if (breakdown.bahan > 0)  store.cashflow.push({ id: Date.now()+2, type:'out', desc:`HPP Bahan — ${o.invNo} (${customer})`,         amount: breakdown.bahan  * totalQty, date: tgl, category:'Biaya Produksi' });
+    if (breakdown.sablon > 0) store.cashflow.push({ id: Date.now()+3, type:'out', desc:`HPP Sablon/Bordir — ${o.invNo} (${customer})`, amount: breakdown.sablon * totalQty, date: tgl, category:'Biaya Produksi' });
+  }
+
+  // Update pemasukan cashflow jika revenue berubah (update amount di entry yang ada)
+  store.cashflow.forEach(c => {
+    if (c.type==='in' && c.desc.includes(o.invNo)) {
+      if (payStatus==='Lunas') c.amount = totalRevenue;
+    }
+  });
+
   const idx = store.orders.findIndex(x=>x.id===o.id);
   if (idx < 0) return;
   store.orders[idx] = {
     ...o,
     customer,
-    phone: document.getElementById('edit-phone').value,
+    phone:    document.getElementById('edit-phone').value,
     deadline: document.getElementById('edit-deadline').value,
-    address: document.getElementById('edit-address').value,
-    product: document.getElementById('edit-product').value,
+    address:  document.getElementById('edit-address').value,
+    product:  document.getElementById('edit-product').value,
     base,
-    sizes: sizes.length > 0 ? sizes : o.sizes,
-    totalQty: sizes.length > 0 ? totalQty : o.totalQty,
+    baseHpp,
+    sizes:        sizes.length > 0 ? sizes : o.sizes,
+    totalQty:     sizes.length > 0 ? totalQty : o.totalQty,
     totalRevenue: sizes.length > 0 ? totalRevenue : o.totalRevenue,
     payStatus,
     dp,
