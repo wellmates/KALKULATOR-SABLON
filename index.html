@@ -803,6 +803,7 @@ body {
       <div class="topbar-title" id="topbar-title">SablonPro</div>
     </div>
     <div class="topbar-actions">
+      <button class="btn btn-ghost btn-icon" style="font-size:18px" onclick="refreshApp()" title="Refresh">🔄</button>
       <button class="btn btn-ghost btn-icon" style="font-size:18px" onclick="openSettingsModal()" title="Ganti tema & pengaturan">🎨</button>
       <button class="btn btn-ghost btn-icon" style="font-size:18px" onclick="openSettingsModal()">⚙️</button>
     </div>
@@ -1549,6 +1550,14 @@ function navigate(page) {
 // ===================================================
 // THEME
 // ===================================================
+function refreshApp() {
+  loadData();
+  renderDashboard();
+  renderHistory();
+  renderCashflow();
+  recalculate();
+  toast('🔄 Data berhasil di-refresh!');
+}
 function applyTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('sablonpro_theme', t);
