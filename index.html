@@ -656,14 +656,19 @@ body {
 
 /* ===================== TOAST ===================== */
 .toast {
-  position: fixed; bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 12px); left: 50%;
+  position: fixed; bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 20px); left: 50%;
   transform: translateX(-50%) translateY(80px); opacity: 0;
   z-index: 9999; background: #1E1B4B; color: #fff;
   padding: 11px 20px; border-radius: 99px;
   font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
-  transition: all .25s; white-space: nowrap;
+  transition: all .25s; white-space: nowrap; pointer-events: none;
 }
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+[data-theme="flame"] .toast,
+[data-theme="flame-dark"] .toast {
+  bottom: 100px;
+  background: linear-gradient(135deg, #C0320A, #E8400C);
+}
 
 /* ===================== PRODUCT TYPE SELECTOR ===================== */
 .produk-btn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 12px; }
@@ -804,7 +809,6 @@ body {
     </div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-icon" style="font-size:18px" onclick="refreshApp()" title="Refresh">🔄</button>
-      <button class="btn btn-ghost btn-icon" style="font-size:18px" onclick="openSettingsModal()" title="Ganti tema & pengaturan">🎨</button>
       <button class="btn btn-ghost btn-icon" style="font-size:18px" onclick="openSettingsModal()">⚙️</button>
     </div>
   </div>
@@ -2283,7 +2287,7 @@ function saveOrder() {
   saveData();
   clearForm();
   toast('✅ Order tersimpan!');
-  navigate('history');
+  setTimeout(() => navigate('history'), 600);
 }
 
 function clearForm() {
@@ -2694,7 +2698,6 @@ function deleteOrder(id) {
   if (!confirm('Hapus order ini?')) return;
   const o = store.orders.find(x => x.id === id);
   if (o) {
-    // Hapus semua cashflow yang terkait dengan order ini (berdasarkan invNo)
     store.cashflow = store.cashflow.filter(c => !c.desc.includes(o.invNo));
   }
   store.orders = store.orders.filter(x => x.id !== id);
